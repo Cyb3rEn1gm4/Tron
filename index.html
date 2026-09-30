@@ -3852,3 +3852,782 @@ console.log('[TRON] Part 3 loaded: GAME ENGINE ready.');
 
 })();
                       </script>
+<script>
+/* ============================================================
+   TRON: LEGACY — LIGHT CYCLES ARENA
+   Часть 4: UI CONTROLLER, MENUS, BOOT — ФИНАЛЬНЫЙ СЛОЙ
+   ============================================================ */
+(() => {
+'use strict';
+
+const TRON = window.TRON;
+if (!TRON) { console.error('[TRON] CORE not loaded!'); return; }
+if (!TRON.Game) { console.error('[TRON] GAME ENGINE not loaded!'); return; }
+
+const {
+  MODES, ARENAS, LEVELS,
+  $, $$, clamp, formatNumber, formatTime,
+  Audio, vibrate,
+} = TRON;
+
+const getSave = () => TRON.getSave();
+const Game = TRON.Game;
+
+// ============================================================
+// LOADING TIPS
+// ============================================================
+const LOADING_TIPS = [
+  'ЗАГРУЗКА ЦИФРОВОЙ СЕТИ...',
+  'ИНИЦИАЛИЗАЦИЯ LIGHT CYCLE...',
+  'КАЛИБРОВКА СЕНСОРОВ...',
+  'СИНХРОНИЗАЦИЯ С ENCOM...',
+  'ЗАГРУЗКА ПРОТОКОЛОВ БОЯ...',
+  'ПРОВЕРКА ЦЕЛОСТНОСТИ ПРОГРАММЫ...',
+  'ПОДКЛЮЧЕНИЕ К АРЕНЕ...',
+  'ВСЕ СИСТЕМЫ ГОТОВЫ.',
+];
+
+// ============================================================
+// TOAST
+// ============================================================
+const Toast = (() => {
+  let timer = null;
+  const el = $('#toast');
+  return {
+    show(text, type = 'default', duration = 2200) {
+      if (!el) return;
+      el.textContent = text;
+      el.className = '';
+      if (type === 'gold') el.classList.add('gold');
+      else if (type === 'red') el.classList.add('red');
+      el.classList.add('active');
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => el.classList.remove('active'), duration);
+    },
+  };
+})();
+
+// ============================================================
+// SCREENS
+// ============================================================
+const Screens = (() => {
+  const screens = {
+    mainMenu: $('#mainMenu'),
+    modeSelect: $('#modeSelect'),
+    arenaSelect: $('#arenaSelect'),
+    leaderboard: $('#leaderboard'),
+    settings: $('#settings'),
+    howto: $('#howto'),
+  };
+
+  let current = null;
+  let pendingArenaMode = null;
+
+  function show(name) {
+    Object.values(screens).forEach(s => s && s.classList.remove('active'));
+    if (screens[name]) {
+      screens[name].classList.add('active');
+      current = name;
+    }
+  }
+
+  function hideAll() {
+    Object.values(screens).forEach(s => s && s.classList.remove('active'));
+    current = null;
+  }
+
+  function getCurrent() { return current; }
+
+  return {
+    show, hideAll, getCurrent,
+    setPendingArenaMode: (m) => { pendingArenaMode = m; },
+    getPendingArenaMode: () => pendingArenaMode,
+    clearPendingArenaMode: () => { pendingArenaMode = null; },
+  };
+})();
+
+// ============================================================
+// MODE CARDS
+// ============================================================
+const ModeCards = (() => {
+  const grid = $('#modesGrid');
+
+  function render() {
+    if (!grid) return;
+    const save = getSave();
+    grid.innerHTML = '';
+
+    Object.values(MODES).forEach((mode, idx) => {
+      const unlocked = save.unlockedModes.includes(mode.id);
+      const card = document.createElement('button');
+      card.className = 'mode-card' + (unlocked ? '' : ' locked');
+      card.style.animationDelay = (idx * 60) + 'ms';
+      card.style.setProperty('--card-accent', mode.accentGlow || 'var(--cyan-glow)');
+
+      const chips = (mode.chips || []).map(c =>
+        `<span class="mode-chip ${c.cls || ''}">${c.text}</span>`
+      ).join('');
+
+      const best = save.bestByMode[mode.id] || 0;
+      const bestHTML = best > 0
+        ? `<div class="mode-highscore">★ РЕКОРД: ${formatNumber(best)}</div>`
+        : '';
+
+      card.innerHTML = `
+        <div class="mode-icon">${mode.icon}</div>
+        <div class="mode-name">${mode.name}</div>
+        <div class="mode-desc">${mode.desc}</div>
+        <div class="mode-meta">${chips}</div>
+        ${bestHTML}
+      `;
+
+      if (unlocked) {
+        card.addEventListener('click', () => {
+          Audio.ui();
+          Screens.setPendingArenaMode(mode.id);
+          Screens.show('arenaSelect');
+          ArenaCards.render();
+        });
+      } else {
+        card.addEventListener('click', () => {
+          Audio.uiError();
+          Toast.show(`ОТКРОЕТСЯ НА УРОВНЕ ${mode.unlockLevel}`, 'red');
+        });
+      }
+
+      grid.appendChild(card);
+    });
+  }
+
+  return { render };
+})();
+
+// ============================================================
+// ARENA CARDS
+// ============================================================
+const ArenaCards = (() => {
+  const grid = $('#arenasGrid');
+
+  function render() {
+    if (!grid) return;
+    const save = getSave();
+    grid.innerHTML = '';
+
+    const labels = {
+      walls: 'СТЕНЫ',
+      portals: 'ПОРТАЛЫ',
+      movingWalls: 'ДВИЖЕНИЕ',
+      energyBoost: 'ЭНЕРГИЯ',
+      traps: 'ЛОВУШКИ',
+      pillars: 'КОЛОННЫ',
+      fog: 'ТУМАН',
+    };
+
+    Object.values(ARENAS).forEach((arena, idx) => {
+      const unlocked = save.unlockedArenas.includes(arena.id);
+      const card = document.createElement('button');
+      card.className = 'arena-card' + (unlocked ? '' : ' locked');
+      card.style.animationDelay = (idx * 60) + 'ms';
+      card.style.setProperty('--arena-accent', arena.accent);
+
+      const features = (arena.features || []).map(f =>
+        `<span class="mode-chip">${labels[f] || f}</span>`
+      ).join('');
+
+      card.innerHTML = `
+        <div class="arena-preview">
+          <span style="position: relative; z-index: 1;">${arena.icon}</span>
+        </div>
+        <div class="arena-body">
+          <div class="arena-name">${arena.name}</div>
+          <div class="arena-desc">${arena.desc}</div>
+          <div class="arena-meta">${features}</div>
+        </div>
+      `;
+
+      if (unlocked) {
+        card.addEventListener('click', () => {
+          Audio.ui();
+          const modeId = Screens.getPendingArenaMode() || 'classic';
+          Screens.clearPendingArenaMode();
+          Screens.hideAll();
+          setTimeout(() => Game.start(modeId, arena.id), 220);
+        });
+      } else {
+        card.addEventListener('click', () => {
+          Audio.uiError();
+          Toast.show(`ОТКРОЕТСЯ НА УРОВНЕ ${arena.unlockLevel}`, 'red');
+        });
+      }
+
+      grid.appendChild(card);
+    });
+  }
+
+  return { render };
+})();
+
+// ============================================================
+// LEADERBOARD
+// ============================================================
+const Leaderboard = (() => {
+  const list = $('#lbList');
+
+  function render() {
+    if (!list) return;
+    const save = getSave();
+    list.innerHTML = '';
+
+    if (!save.scores || save.scores.length === 0) {
+      list.innerHTML = `<div class="lb-empty">Пока нет результатов<br>Сыграй первую игру!</div>`;
+      return;
+    }
+
+    const sorted = [...save.scores].sort((a, b) => b.score - a.score).slice(0, 50);
+
+    sorted.forEach((entry, i) => {
+      const rank = i + 1;
+      const row = document.createElement('div');
+      row.className = 'lb-row';
+      if (rank === 1) row.classList.add('top1');
+      else if (rank === 2) row.classList.add('top2');
+      else if (rank === 3) row.classList.add('top3');
+      row.style.animationDelay = (i * 30) + 'ms';
+
+      const mode = MODES[entry.mode] || { name: 'КЛАССИКА' };
+      const arena = ARENAS[entry.arena] || { name: 'СЕТКА' };
+      const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+      const rankText = medal || `#${rank}`;
+
+      row.innerHTML = `
+        <div class="lb-rank">${rankText}</div>
+        <div>
+          <div class="lb-name">${mode.name}</div>
+          <div class="lb-mode">${arena.name} · ${formatTime(entry.timeMs || 0)}</div>
+        </div>
+        <div class="lb-mode">${entry.won ? '★' : ''}</div>
+        <div class="lb-score">${formatNumber(entry.score)}</div>
+      `;
+
+      list.appendChild(row);
+    });
+  }
+
+  return { render };
+})();
+
+// ============================================================
+// PROFILE
+// ============================================================
+function getLevelData(xp) {
+  let level = 1;
+  let name = LEVELS[0].name;
+  let currentXp = 0;
+  let nextXp = LEVELS[1] ? LEVELS[1].xp : LEVELS[0].xp;
+
+  for (let i = 0; i < LEVELS.length; i++) {
+    if (xp >= LEVELS[i].xp) {
+      level = i + 1;
+      name = LEVELS[i].name;
+      currentXp = LEVELS[i].xp;
+      nextXp = LEVELS[i + 1] ? LEVELS[i + 1].xp : LEVELS[i].xp;
+    }
+  }
+
+  const span = Math.max(1, nextXp - currentXp);
+  const progress = clamp((xp - currentXp) / span, 0, 1);
+
+  return { level, name, progress, currentXp, nextXp };
+}
+
+const Profile = (() => {
+  function refresh() {
+    const save = getSave();
+
+    const bestEl = $('#menuBest');
+    if (bestEl) bestEl.textContent = formatNumber(save.best);
+
+    const gamesEl = $('#menuGames');
+    if (gamesEl) gamesEl.textContent = formatNumber(save.gamesPlayed);
+
+    const killsEl = $('#menuKills');
+    if (killsEl) killsEl.textContent = formatNumber(save.totalKills);
+
+    const orbsEl = $('#menuOrbs');
+    if (orbsEl) orbsEl.textContent = formatNumber(save.totalOrbs);
+
+    const levelData = getLevelData(save.xp);
+    const badge = $('#levelBadge');
+    if (badge) badge.textContent = levelData.level;
+    const nameEl = $('#levelName');
+    if (nameEl) nameEl.textContent = levelData.name;
+    const xpEl = $('#levelXP');
+    if (xpEl) xpEl.textContent = `${save.xp} / ${levelData.nextXp} XP`;
+    const xpFill = $('#xpFill');
+    if (xpFill) xpFill.style.width = (levelData.progress * 100) + '%';
+  }
+
+  return { refresh };
+})();
+
+// ============================================================
+// HUD UPDATE FUNCTIONS
+// ============================================================
+function updateHUDScore(score) {
+  const el = $('#scoreDisplay');
+  if (!el) return;
+  el.textContent = formatNumber(score);
+  el.classList.add('bump');
+  clearTimeout(el._bumpTimer);
+  el._bumpTimer = setTimeout(() => el.classList.remove('bump'), 160);
+}
+
+function updateHUDBest(best) {
+  const el = $('#bestDisplay');
+  if (el) el.textContent = formatNumber(best);
+}
+
+function updateHUDLevel(level) {
+  const el = $('#levelTag');
+  if (el) el.textContent = 'УРОВЕНЬ ' + level;
+  const speedFill = $('#speedFill');
+  if (speedFill) {
+    const pct = clamp(level * 10, 10, 100);
+    speedFill.style.width = pct + '%';
+  }
+}
+
+function updateHUDMode(modeName) {
+  const el = $('#modeTag');
+  if (el) el.textContent = modeName;
+}
+
+// ============================================================
+// PAUSE MENU
+// ============================================================
+function showPauseMenu() {
+  const el = $('#pauseMenu');
+  if (el) el.classList.add('active');
+}
+
+function hidePauseMenu() {
+  const el = $('#pauseMenu');
+  if (el) el.classList.remove('active');
+}
+
+// ============================================================
+// GAME OVER
+// ============================================================
+function showGameOver(data) {
+  const { score, best, isRecord, orbs, kills, xpGain, won, reason } = data;
+
+  const titleEl = $('#goTitle');
+  const statusEl = $('#goStatus');
+  const subEl = $('#goSub');
+
+  if (won) {
+    if (statusEl) statusEl.textContent = 'ПРОГРАММА ЗАВЕРШЕНА УСПЕШНО';
+    if (titleEl) {
+      titleEl.textContent = 'VICTORY';
+      titleEl.style.color = 'var(--cyan)';
+      titleEl.style.textShadow = '0 0 15px var(--cyan), 0 0 40px var(--cyan), 0 0 70px var(--cyan-glow)';
+    }
+    if (subEl) subEl.textContent = 'СИСТЕМА ENCOM · КОД 89.4';
+  } else {
+    if (statusEl) statusEl.textContent = 'ПРОГРАММА ЗАВЕРШЕНА';
+    if (titleEl) {
+      titleEl.textContent = 'DERESOLUTION';
+      titleEl.style.color = '';
+      titleEl.style.textShadow = '';
+    }
+    if (subEl) {
+      const reasons = {
+        wall: 'СТОЛКНОВЕНИЕ СО СТЕНОЙ',
+        self: 'СТОЛКНОВЕНИЕ С СОБСТВЕННЫМ СЛЕДОМ',
+        enemy: 'СТОЛКНОВЕНИЕ СО СЛЕДОМ ВРАГА',
+        'enemy-contact': 'ПРЯМОЕ СТОЛКНОВЕНИЕ С ВРАГОМ',
+        trap: 'ПОДРЫВ НА ЛОВУШКЕ',
+        boss: 'СТОЛКНОВЕНИЕ С БОССОМ',
+        'boss-contact': 'БОСС УНИЧТОЖИЛ ВАС',
+        projectile: 'ПОПАДАНИЕ СНАРЯДА',
+      };
+      subEl.textContent = reasons[reason] || 'СИСТЕМА ENCOM · ЛОГ 89.4';
+    }
+  }
+
+  const setText = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = typeof val === 'number' ? formatNumber(val) : val;
+  };
+
+  setText('finalScore', score);
+  setText('finalBest', best);
+  setText('finalOrbs', orbs);
+  setText('finalKills', kills);
+
+  const bestBox = $('#finalBestBox');
+  if (bestBox) bestBox.classList.toggle('new-record', isRecord);
+
+  setText('xpGained', '+' + xpGain + ' XP');
+  const goXpFill = $('#goXpFill');
+  if (goXpFill) {
+    goXpFill.style.width = '0%';
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        const lvl = getLevelData(getSave().xp);
+        goXpFill.style.width = (lvl.progress * 100) + '%';
+      }, 200);
+    });
+  }
+
+  const el = $('#gameover');
+  if (el) el.classList.add('active');
+
+  if (won || isRecord) setTimeout(() => Audio.newRecord(), 300);
+  else setTimeout(() => Audio.gameover(), 300);
+}
+
+// ============================================================
+// SETTINGS: SLIDER
+// ============================================================
+function setupSlider(sliderId, fillId, thumbId, valueId, labels, getValue, setValue) {
+  const slider = document.getElementById(sliderId);
+  const fill = document.getElementById(fillId);
+  const thumb = document.getElementById(thumbId);
+  const valueEl = document.getElementById(valueId);
+  if (!slider || !fill || !thumb || !valueEl) return null;
+
+  function refresh() {
+    const v = getValue();
+    const max = labels.length - 1;
+    const pct = (v / max) * 100;
+    fill.style.width = pct + '%';
+    thumb.style.left = pct + '%';
+    valueEl.textContent = labels[v];
+  }
+
+  function setFromX(clientX) {
+    const rect = slider.getBoundingClientRect();
+    const pct = clamp((clientX - rect.left) / rect.width, 0, 1);
+    const idx = Math.round(pct * (labels.length - 1));
+    if (idx !== getValue()) {
+      setValue(idx);
+      Audio.uiClick();
+    }
+    refresh();
+  }
+
+  let dragging = false;
+
+  slider.addEventListener('mousedown', (e) => { dragging = true; setFromX(e.clientX); });
+  window.addEventListener('mousemove', (e) => { if (dragging) setFromX(e.clientX); });
+  window.addEventListener('mouseup', () => { dragging = false; });
+
+  slider.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    dragging = true;
+    setFromX(e.touches[0].clientX);
+  }, { passive: false });
+  slider.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (dragging) setFromX(e.touches[0].clientX);
+  }, { passive: false });
+  slider.addEventListener('touchend', () => { dragging = false; });
+
+  refresh();
+  return refresh;
+}
+
+// ============================================================
+// SETTINGS PANEL
+// ============================================================
+const SettingsPanel = (() => {
+  const soundToggle = $('#soundToggle');
+  const vibrateToggle = $('#vibrateToggle');
+  const particlesToggle = $('#particlesToggle');
+  const trailGlowToggle = $('#trailGlowToggle');
+  let refreshDiff = null;
+  let refreshSens = null;
+
+  function init() {
+    soundToggle?.addEventListener('click', () => {
+      const s = getSave();
+      s.sound = !s.sound;
+      soundToggle.classList.toggle('on', s.sound);
+      Audio.setEnabled(s.sound);
+      if (s.sound) Audio.ui();
+      TRON.persistSave();
+    });
+
+    vibrateToggle?.addEventListener('click', () => {
+      const s = getSave();
+      s.vibrate = !s.vibrate;
+      vibrateToggle.classList.toggle('on', s.vibrate);
+      if (s.vibrate) vibrate(20);
+      TRON.persistSave();
+    });
+
+    particlesToggle?.addEventListener('click', () => {
+      const s = getSave();
+      s.particles = !s.particles;
+      particlesToggle.classList.toggle('on', s.particles);
+      Audio.ui();
+      TRON.persistSave();
+    });
+
+    trailGlowToggle?.addEventListener('click', () => {
+      const s = getSave();
+      s.trailGlow = !s.trailGlow;
+      trailGlowToggle.classList.toggle('on', s.trailGlow);
+      Audio.ui();
+      TRON.persistSave();
+    });
+
+    refreshDiff = setupSlider(
+      'diffSlider', 'diffFill', 'diffThumb', 'diffValue',
+      ['ЛЕГКО', 'НОРМ', 'СЛОЖНО'],
+      () => getSave().difficulty,
+      (v) => { getSave().difficulty = v; TRON.persistSave(); }
+    );
+
+    refreshSens = setupSlider(
+      'sensSlider', 'sensFill', 'sensThumb', 'sensValue',
+      ['НИЗК', 'СРЕД', 'ВЫСОК'],
+      () => getSave().sensitivity,
+      (v) => { getSave().sensitivity = v; TRON.persistSave(); }
+    );
+
+    $('#resetBtn')?.addEventListener('click', () => {
+      if (confirm('Сбросить весь прогресс? Это удалит рекорды, уровень и статистику.')) {
+        TRON.resetSave();
+        Audio.uiError();
+        Toast.show('ПРОГРЕСС СБРОШЕН', 'red');
+        Profile.refresh();
+        ModeCards.render();
+        ArenaCards.render();
+        Leaderboard.render();
+        refreshAll();
+      }
+    });
+  }
+
+  function refreshAll() {
+    const s = getSave();
+    soundToggle?.classList.toggle('on', s.sound);
+    vibrateToggle?.classList.toggle('on', s.vibrate);
+    particlesToggle?.classList.toggle('on', s.particles);
+    trailGlowToggle?.classList.toggle('on', s.trailGlow);
+    refreshDiff?.();
+    refreshSens?.();
+  }
+
+  return { init, refreshAll };
+})();
+
+// ============================================================
+// WIRE BUTTONS
+// ============================================================
+function wireAllButtons() {
+  $('#playBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    Screens.hideAll();
+    setTimeout(() => Game.start('classic', 'grid'), 220);
+  });
+
+  $('#modesBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    Screens.show('modeSelect');
+    ModeCards.render();
+  });
+
+  $('#arenasBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    Screens.setPendingArenaMode('classic');
+    Screens.show('arenaSelect');
+    ArenaCards.render();
+  });
+
+  $('#leaderboardBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    Screens.show('leaderboard');
+    Leaderboard.render();
+  });
+
+  $('#howtoBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    Screens.show('howto');
+  });
+
+  $('#settingsBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    Screens.show('settings');
+    SettingsPanel.refreshAll();
+  });
+
+  $$('[data-back]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      Audio.uiBack();
+      Screens.show('mainMenu');
+      Profile.refresh();
+    });
+  });
+
+  $('#resumeBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    Game.resume();
+  });
+
+  $('#restartBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    hidePauseMenu();
+    Game.restart();
+  });
+
+  $('#settingsPauseBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    hidePauseMenu();
+    Screens.show('settings');
+    SettingsPanel.refreshAll();
+  });
+
+  $('#quitBtn')?.addEventListener('click', () => {
+    Audio.uiBack();
+    Game.quit();
+  });
+
+  $('#retryBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    const el = $('#gameover');
+    if (el) el.classList.remove('active');
+    setTimeout(() => {
+      const mode = Game.getMode();
+      const arena = Game.getArena();
+      Game.start(mode.id, arena.id);
+    }, 220);
+  });
+
+  $('#menuBtn')?.addEventListener('click', () => {
+    Audio.uiBack();
+    const el = $('#gameover');
+    if (el) el.classList.remove('active');
+    Game.quit();
+  });
+
+  document.addEventListener('gesturestart', (e) => e.preventDefault());
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', (e) => {
+    const nowT = Date.now();
+    if (nowT - lastTouchEnd <= 300) e.preventDefault();
+    lastTouchEnd = nowT;
+  }, { passive: false });
+
+  document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  document.body.addEventListener('touchmove', (e) => {
+    if (e.target === document.body || e.target === document.documentElement) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+}
+
+// ============================================================
+// LOADER
+// ============================================================
+function runLoader(callback) {
+  const loader = $('#loader');
+  const tipEl = $('#loaderTip');
+  if (!loader) { callback(); return; }
+
+  let tipIdx = 0;
+  const tipInterval = setInterval(() => {
+    tipIdx = (tipIdx + 1) % LOADING_TIPS.length;
+    if (tipEl) {
+      tipEl.style.opacity = 0;
+      setTimeout(() => {
+        tipEl.textContent = LOADING_TIPS[tipIdx];
+        tipEl.style.opacity = 1;
+      }, 200);
+    }
+  }, 450);
+
+  setTimeout(() => {
+    clearInterval(tipInterval);
+    loader.classList.add('fade-out');
+    setTimeout(() => {
+      loader.classList.add('hidden');
+      callback();
+    }, 900);
+  }, 2400);
+}
+
+// ============================================================
+// EXPORT TO TRON
+// ============================================================
+TRON.updateHUDScore = updateHUDScore;
+TRON.updateHUDBest = updateHUDBest;
+TRON.updateHUDLevel = updateHUDLevel;
+TRON.updateHUDMode = updateHUDMode;
+TRON.showGameOver = showGameOver;
+TRON.showPauseMenu = showPauseMenu;
+TRON.hidePauseMenu = hidePauseMenu;
+TRON.showMainMenu = () => { Screens.show('mainMenu'); Profile.refresh(); };
+TRON.Toast = Toast;
+TRON.Screens = Screens;
+
+// ============================================================
+// BOOT
+// ============================================================
+function boot() {
+  console.log('[TRON] Boot started...');
+
+  SettingsPanel.init();
+  wireAllButtons();
+
+  window.addEventListener('keydown', (e) => {
+    const k = e.key.toLowerCase();
+    const state = Game.getState();
+
+    if (state === 'idle') {
+      if (k === 'enter' && Screens.getCurrent() === 'mainMenu') {
+        e.preventDefault();
+        $('#playBtn')?.click();
+      }
+      if (k === 'escape') {
+        if (Screens.getCurrent() && Screens.getCurrent() !== 'mainMenu') {
+          Screens.show('mainMenu');
+        }
+      }
+    }
+  });
+
+  const initAudioOnce = () => {
+    Audio.init();
+    Audio.resume();
+    document.removeEventListener('touchstart', initAudioOnce);
+    document.removeEventListener('mousedown', initAudioOnce);
+  };
+  document.addEventListener('touchstart', initAudioOnce, { passive: true });
+  document.addEventListener('mousedown', initAudioOnce);
+
+  TRON.Background.start();
+  Profile.refresh();
+
+  runLoader(() => {
+    Screens.show('mainMenu');
+    Profile.refresh();
+    console.log('[TRON] Game ready. Version:', TRON.VERSION);
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
+}
+
+console.log('[TRON] Part 4 loaded: UI ready.');
+
+})();
+</script>
+</body>
+</html>
