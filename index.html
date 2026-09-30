@@ -3,14 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#000814">
+<meta name="theme-color" content="#000408">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>TRON: LEGACY — Light Cycles</title>
+<meta name="mobile-web-app-capable" content="yes">
+<title>TRON: LEGACY // LIGHT CYCLES ARENA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
-   RESET & BASE
+   TRON: LEGACY — LIGHT CYCLES ARENA
+   Full AAA-style Single-File Game
    ============================================================ */
+
 *, *::before, *::after {
   margin: 0;
   padding: 0;
@@ -19,50 +25,123 @@
   -webkit-touch-callout: none;
 }
 
+:root {
+  --cyan: #00e5ff;
+  --cyan-bright: #66f0ff;
+  --cyan-dim: #00a8bf;
+  --cyan-dark: #003d4d;
+  --cyan-glow: rgba(0, 229, 255, 0.55);
+  --orange: #ff8c00;
+  --orange-bright: #ffab40;
+  --orange-glow: rgba(255, 140, 0, 0.55);
+  --magenta: #ff2bd6;
+  --magenta-glow: rgba(255, 43, 214, 0.55);
+  --gold: #ffd54f;
+  --gold-glow: rgba(255, 213, 79, 0.6);
+  --red: #ff2b5e;
+  --red-glow: rgba(255, 43, 94, 0.6);
+  --green: #00ff88;
+  --purple: #9d4dff;
+  --white: #ffffff;
+  --bg-deep: #000408;
+  --bg-mid: #000a14;
+  --bg-field: #001428;
+  --panel: rgba(0, 18, 32, 0.78);
+  --panel-solid: #001220;
+  --border-soft: rgba(0, 229, 255, 0.3);
+  --border-bright: rgba(0, 229, 255, 0.75);
+  --font-display: 'Orbitron', sans-serif;
+  --font-body: 'Rajdhani', sans-serif;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
 html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #000;
-  font-family: 'Orbitron', 'Courier New', monospace;
+  background: var(--bg-deep);
   color: #d8f8ff;
+  font-family: var(--font-body);
   user-select: none;
   touch-action: none;
   overscroll-behavior: none;
   position: fixed;
   inset: 0;
-}
-
-:root {
-  --cyan: #00e5ff;
-  --cyan-dim: #00b8d4;
-  --cyan-glow: rgba(0, 229, 255, 0.6);
-  --orange: #ff8c00;
-  --orange-glow: rgba(255, 140, 0, 0.6);
-  --magenta: #ff2bd6;
-  --magenta-glow: rgba(255, 43, 214, 0.6);
-  --white: #ffffff;
-  --bg-dark: #000814;
-  --bg-mid: #001428;
-  --grid-line: rgba(0, 180, 220, 0.08);
-  --grid-line-bright: rgba(0, 229, 255, 0.15);
-  --panel-bg: rgba(0, 20, 35, 0.75);
-  --border-glow: 0 0 18px var(--cyan-glow), inset 0 0 12px rgba(0, 229, 255, 0.15);
+  font-weight: 500;
 }
 
 /* ============================================================
-   LOADER SCREEN
+   GLOBAL OVERLAYS
    ============================================================ */
+
+#bgCanvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  display: block;
+}
+
+#vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 100%),
+    linear-gradient(180deg, rgba(0,0,0,0.35) 0%, transparent 15%, transparent 85%, rgba(0,0,0,0.35) 100%);
+}
+
+#scanlines {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(0, 229, 255, 0.03) 0px,
+    rgba(0, 229, 255, 0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: screen;
+}
+
+#flash {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease-out;
+}
+
+#shakeWrap {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* ============================================================
+   LOADING SCREEN
+   ============================================================ */
+
 #loader {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: radial-gradient(ellipse at center, #001428 0%, #000408 70%, #000 100%);
+  background:
+    radial-gradient(ellipse at center, #001a2e 0%, #000508 65%, #000 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.8s ease, visibility 0.8s ease;
+  transition: opacity 1s ease, visibility 1s ease;
 }
 
 #loader.fade-out {
@@ -70,34 +149,89 @@ html, body {
   visibility: hidden;
 }
 
-.loader-logo {
-  font-family: 'Orbitron', sans-serif;
-  font-size: clamp(36px, 10vw, 72px);
+.loader-rings {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin-bottom: 40px;
+}
+
+.loader-ring {
+  position: absolute;
+  inset: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  border-top-color: var(--cyan);
+  border-right-color: rgba(0, 229, 255, 0.3);
+  animation: spinRing 1.4s linear infinite;
+  box-shadow: 0 0 30px var(--cyan-glow);
+}
+
+.loader-ring:nth-child(2) {
+  inset: 14px;
+  border-top-color: var(--magenta);
+  border-right-color: rgba(255, 43, 214, 0.3);
+  animation-duration: 1.9s;
+  animation-direction: reverse;
+  box-shadow: 0 0 30px var(--magenta-glow);
+}
+
+.loader-ring:nth-child(3) {
+  inset: 28px;
+  border-top-color: var(--orange);
+  border-right-color: rgba(255, 140, 0, 0.3);
+  animation-duration: 1.1s;
+  box-shadow: 0 0 30px var(--orange-glow);
+}
+
+.loader-core {
+  position: absolute;
+  inset: 44px;
+  background: radial-gradient(circle, #fff 0%, var(--cyan) 40%, transparent 70%);
+  border-radius: 50%;
+  animation: pulseCore 1.6s ease-in-out infinite;
+}
+
+@keyframes spinRing {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulseCore {
+  0%, 100% { transform: scale(0.85); opacity: 0.7; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+.loader-title {
+  font-family: var(--font-display);
   font-weight: 900;
-  letter-spacing: clamp(6px, 2vw, 18px);
-  color: var(--cyan);
-  text-shadow: 
-    0 0 10px var(--cyan),
+  font-size: clamp(40px, 12vw, 88px);
+  letter-spacing: clamp(8px, 3vw, 22px);
+  color: #fff;
+  text-shadow:
+    0 0 12px var(--cyan),
     0 0 30px var(--cyan),
     0 0 60px var(--cyan),
-    0 0 100px var(--cyan);
-  animation: loaderPulse 2s ease-in-out infinite;
-  padding-left: clamp(6px, 2vw, 18px);
+    0 0 120px var(--cyan);
+  padding-left: clamp(8px, 3vw, 22px);
+  animation: titleBreath 3s ease-in-out infinite;
 }
 
 .loader-sub {
-  margin-top: 12px;
-  font-size: clamp(10px, 2.5vw, 13px);
-  letter-spacing: 6px;
-  color: rgba(0, 229, 255, 0.6);
-  animation: fadeSlide 2s ease-in-out infinite;
+  margin-top: 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(10px, 3vw, 14px);
+  letter-spacing: clamp(5px, 2vw, 12px);
+  color: var(--cyan);
+  opacity: 0.75;
+  padding-left: clamp(5px, 2vw, 12px);
 }
 
 .loader-bar {
-  margin-top: 40px;
-  width: min(280px, 70vw);
+  margin-top: 44px;
+  width: min(320px, 70vw);
   height: 3px;
-  background: rgba(0, 229, 255, 0.15);
+  background: rgba(0, 229, 255, 0.12);
   border-radius: 2px;
   overflow: hidden;
   position: relative;
@@ -110,18 +244,25 @@ html, body {
   width: 40%;
   height: 100%;
   background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-  box-shadow: 0 0 18px var(--cyan);
-  animation: loaderSlide 1.4s ease-in-out infinite;
+  box-shadow: 0 0 20px var(--cyan);
+  animation: loaderSlide 1.3s ease-in-out infinite;
 }
 
-@keyframes loaderPulse {
-  0%, 100% { text-shadow: 0 0 10px var(--cyan), 0 0 30px var(--cyan), 0 0 60px var(--cyan), 0 0 100px var(--cyan); }
-  50% { text-shadow: 0 0 15px var(--white), 0 0 40px var(--cyan), 0 0 80px var(--cyan), 0 0 140px var(--cyan); }
+.loader-tip {
+  margin-top: 20px;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: rgba(0, 229, 255, 0.45);
+  text-transform: uppercase;
+  min-height: 16px;
+  text-align: center;
+  padding: 0 20px;
+  transition: opacity 0.4s ease;
 }
 
-@keyframes fadeSlide {
-  0%, 100% { opacity: 0.4; transform: translateY(0); }
-  50% { opacity: 1; transform: translateY(-3px); }
+@keyframes titleBreath {
+  0%, 100% { text-shadow: 0 0 12px var(--cyan), 0 0 30px var(--cyan), 0 0 60px var(--cyan), 0 0 120px var(--cyan); }
+  50% { text-shadow: 0 0 20px var(--cyan-bright), 0 0 45px var(--cyan), 0 0 90px var(--cyan), 0 0 160px var(--cyan); }
 }
 
 @keyframes loaderSlide {
@@ -130,23 +271,951 @@ html, body {
 }
 
 /* ============================================================
-   BACKGROUND CANVAS (persistent animated grid)
+   MAIN MENU
    ============================================================ */
-#bgCanvas {
+
+#mainMenu {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.7s ease, visibility 0.7s ease;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: calc(16px + var(--safe-top)) calc(16px + var(--safe-right)) calc(16px + var(--safe-bottom)) calc(16px + var(--safe-left));
+}
+
+#mainMenu.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  width: 100%;
+  max-width: 1200px;
+  margin: auto;
+  align-items: center;
+  padding: 20px 0;
+}
+
+@media (min-width: 900px) and (orientation: landscape) {
+  .menu-grid {
+    grid-template-columns: 1.1fr 1fr;
+    gap: 60px;
+    max-width: 1100px;
+  }
+}
+
+/* --- Hero / Logo side --- */
+.menu-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  position: relative;
+  animation: menuHeroIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes menuHeroIn {
+  from { opacity: 0; transform: translateY(-40px) scale(0.92); filter: blur(14px); }
+  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+.menu-eyebrow {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(9px, 2vw, 11px);
+  letter-spacing: clamp(6px, 2.5vw, 12px);
+  color: rgba(0, 229, 255, 0.6);
+  text-transform: uppercase;
+  padding-left: clamp(6px, 2.5vw, 12px);
+}
+
+.menu-logo {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(56px, 15vw, 130px);
+  letter-spacing: clamp(8px, 3vw, 24px);
+  color: #fff;
+  line-height: 0.92;
+  padding-left: clamp(8px, 3vw, 24px);
+  text-shadow:
+    0 0 10px var(--cyan),
+    0 0 28px var(--cyan),
+    0 0 60px var(--cyan),
+    0 0 110px var(--cyan);
+  animation: titleBreath 4s ease-in-out infinite;
+  position: relative;
+}
+
+.menu-logo::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -12px;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  box-shadow: 0 0 14px var(--cyan);
+  animation: logoUnderline 3s ease-in-out infinite;
+}
+
+@keyframes logoUnderline {
+  0%, 100% { width: 40%; opacity: 0.6; }
+  50% { width: 70%; opacity: 1; }
+}
+
+.menu-tagline {
+  margin-top: 22px;
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: clamp(12px, 3vw, 15px);
+  letter-spacing: 4px;
+  color: rgba(216, 248, 255, 0.65);
+  text-transform: uppercase;
+  max-width: 500px;
+  line-height: 1.6;
+}
+
+.menu-version {
+  margin-top: 30px;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 9px;
+  letter-spacing: 4px;
+  color: rgba(0, 229, 255, 0.4);
+  text-transform: uppercase;
+}
+
+/* --- Actions side --- */
+.menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  animation: menuActionsIn 1.2s 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes menuActionsIn {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Primary CTA */
+.cta-primary {
+  position: relative;
+  width: 100%;
+  padding: 20px 28px 20px 60px;
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.14), rgba(0, 140, 180, 0.08));
+  border: 2px solid var(--cyan);
+  border-radius: 14px;
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(14px, 3.5vw, 17px);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow:
+    0 0 25px var(--cyan-glow),
+    inset 0 0 20px rgba(0, 229, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  text-shadow: 0 0 10px var(--cyan-glow);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: primaryCtaPulse 3s ease-in-out infinite;
+  text-align: left;
+}
+
+@keyframes primaryCtaPulse {
+  0%, 100% {
+    box-shadow: 0 0 25px var(--cyan-glow), inset 0 0 20px rgba(0, 229, 255, 0.12);
+  }
+  50% {
+    box-shadow: 0 0 45px var(--cyan-glow), 0 0 80px rgba(0, 229, 255, 0.35), inset 0 0 25px rgba(0, 229, 255, 0.22);
+  }
+}
+
+.cta-primary::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+
+.cta-primary:hover::before,
+.cta-primary:active::before {
+  left: 100%;
+}
+
+.cta-primary:active {
+  transform: scale(0.97);
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.3), rgba(0, 140, 180, 0.15));
+}
+
+.cta-primary .cta-icon {
+  position: absolute;
+  left: 20px;
+  font-size: 22px;
+  filter: drop-shadow(0 0 8px var(--cyan));
+}
+
+.cta-primary .cta-sub {
   display: block;
-  opacity: 0.85;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: rgba(0, 229, 255, 0.7);
+  margin-top: 3px;
+  text-shadow: none;
+}
+
+.cta-primary .cta-arrow {
+  font-size: 18px;
+  opacity: 0.8;
+  transition: transform 0.25s ease;
+  filter: drop-shadow(0 0 6px var(--cyan));
+}
+
+.cta-primary:active .cta-arrow {
+  transform: translateX(6px);
+}
+
+.cta-primary .cta-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+
+/* Secondary actions grid */
+.menu-secondary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.menu-tile {
+  position: relative;
+  padding: 16px 14px;
+  background: var(--panel);
+  border: 1.5px solid var(--border-soft);
+  border-radius: 12px;
+  color: var(--cyan);
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-height: 78px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  text-align: left;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.12), inset 0 0 10px rgba(0, 229, 255, 0.05);
+}
+
+.menu-tile::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 50%, rgba(0, 229, 255, 0.15), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.menu-tile:hover::before,
+.menu-tile:active::before {
+  opacity: 1;
+}
+
+.menu-tile:active {
+  transform: scale(0.96);
+  border-color: var(--cyan);
+  box-shadow: 0 0 25px var(--cyan-glow), inset 0 0 18px rgba(0, 229, 255, 0.2);
+}
+
+.menu-tile .tile-icon {
+  font-size: 20px;
+  filter: drop-shadow(0 0 8px var(--cyan));
+  margin-bottom: 2px;
+}
+
+.menu-tile .tile-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--cyan);
+  text-shadow: 0 0 8px var(--cyan-glow);
+  position: relative;
+  z-index: 1;
+}
+
+.menu-tile .tile-sub {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: rgba(216, 248, 255, 0.45);
+  position: relative;
+  z-index: 1;
+}
+
+/* Profile stats strip */
+.profile-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 14px 12px;
+  background: var(--panel);
+  border: 1.5px solid var(--border-soft);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.06);
+}
+
+.profile-stat {
+  text-align: center;
+}
+
+.profile-stat .ps-value {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(15px, 4vw, 20px);
+  color: var(--cyan);
+  text-shadow: 0 0 10px var(--cyan-glow);
+  line-height: 1;
+}
+
+.profile-stat .ps-value.gold {
+  color: var(--gold);
+  text-shadow: 0 0 10px var(--gold-glow);
+}
+
+.profile-stat .ps-label {
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: rgba(0, 229, 255, 0.5);
+  text-transform: uppercase;
+  margin-top: 6px;
+  font-weight: 700;
+}
+
+/* Player level strip */
+.level-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(90deg, rgba(0, 229, 255, 0.08), rgba(0, 229, 255, 0.02));
+  border: 1.5px solid var(--border-soft);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.level-badge {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--cyan), var(--cyan-dim));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 16px;
+  color: #001018;
+  box-shadow: 0 0 20px var(--cyan-glow), inset 0 0 10px rgba(255,255,255,0.5);
+}
+
+.level-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.level-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.level-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  text-shadow: 0 0 8px var(--cyan-glow);
+}
+
+.level-xp {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: rgba(216, 248, 255, 0.5);
+}
+
+.xp-bar {
+  height: 5px;
+  background: rgba(0, 229, 255, 0.12);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan-dim), var(--cyan), var(--cyan-bright));
+  box-shadow: 0 0 12px var(--cyan-glow);
+  border-radius: 3px;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.xp-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 20px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, #fff);
+  opacity: 0.6;
 }
 
 /* ============================================================
-   GAME CANVAS
+   MODE SELECT SCREEN
    ============================================================ */
+
+#modeSelect {
+  position: fixed;
+  inset: 0;
+  z-index: 105;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: calc(16px + var(--safe-top)) calc(16px + var(--safe-right)) calc(16px + var(--safe-bottom)) calc(16px + var(--safe-left));
+}
+
+#modeSelect.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.screen-header {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 0 24px 0;
+  flex-shrink: 0;
+}
+
+.back-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1.5px solid var(--border-soft);
+  color: var(--cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-size: 20px;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.15);
+}
+
+.back-btn:active {
+  background: rgba(0, 229, 255, 0.25);
+  transform: scale(0.92);
+}
+
+.screen-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(18px, 5vw, 26px);
+  letter-spacing: clamp(4px, 2vw, 8px);
+  color: #fff;
+  text-shadow: 0 0 12px var(--cyan), 0 0 30px var(--cyan-glow);
+  text-transform: uppercase;
+}
+
+.screen-subtitle {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: rgba(0, 229, 255, 0.5);
+  text-transform: uppercase;
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-weight: 500;
+}
+
+.modes-grid {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  padding-bottom: 30px;
+}
+
+@media (min-width: 700px) {
+  .modes-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .modes-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.mode-card {
+  position: relative;
+  padding: 22px 20px;
+  background: var(--panel);
+  border: 1.5px solid var(--border-soft);
+  border-radius: 16px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  text-align: left;
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.1), inset 0 0 12px rgba(0, 229, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 180px;
+  animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.mode-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 0%, var(--card-accent, var(--cyan-glow)), transparent 65%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.mode-card:hover::before,
+.mode-card:active::before {
+  opacity: 0.5;
+}
+
+.mode-card:active {
+  transform: scale(0.98);
+  border-color: var(--card-accent, var(--cyan));
+  box-shadow: 0 0 35px var(--card-accent, var(--cyan-glow)), inset 0 0 20px rgba(0, 229, 255, 0.15);
+}
+
+.mode-card.locked {
+  opacity: 0.45;
+  pointer-events: none;
+  filter: grayscale(0.7);
+}
+
+.mode-card.locked::after {
+  content: '🔒';
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-size: 18px;
+  opacity: 0.7;
+}
+
+.mode-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: rgba(0, 229, 255, 0.12);
+  border: 1.5px solid var(--card-accent, var(--cyan));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  filter: drop-shadow(0 0 10px var(--card-accent, var(--cyan-glow)));
+  position: relative;
+  z-index: 1;
+  box-shadow: inset 0 0 15px var(--card-accent, rgba(0, 229, 255, 0.15));
+}
+
+.mode-name {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(14px, 3.5vw, 16px);
+  letter-spacing: 3px;
+  color: #fff;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px var(--card-accent, var(--cyan-glow));
+  position: relative;
+  z-index: 1;
+}
+
+.mode-desc {
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.5px;
+  color: rgba(216, 248, 255, 0.65);
+  position: relative;
+  z-index: 1;
+}
+
+.mode-meta {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  position: relative;
+  z-index: 1;
+  flex-wrap: wrap;
+}
+
+.mode-chip {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  padding: 4px 9px;
+  background: rgba(0, 229, 255, 0.1);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  border-radius: 6px;
+  color: var(--cyan);
+  text-transform: uppercase;
+}
+
+.mode-chip.hard {
+  color: var(--red);
+  border-color: rgba(255, 43, 94, 0.4);
+  background: rgba(255, 43, 94, 0.1);
+}
+
+.mode-chip.gold {
+  color: var(--gold);
+  border-color: rgba(255, 213, 79, 0.4);
+  background: rgba(255, 213, 79, 0.1);
+}
+
+.mode-chip.easy {
+  color: var(--green);
+  border-color: rgba(0, 255, 136, 0.4);
+  background: rgba(0, 255, 136, 0.1);
+}
+
+.mode-highscore {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 10px;
+  color: var(--gold);
+  letter-spacing: 2px;
+  margin-top: 8px;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 0 8px var(--gold-glow);
+}
+
+/* ============================================================
+   ARENA SELECT SCREEN
+   ============================================================ */
+
+#arenaSelect {
+  position: fixed;
+  inset: 0;
+  z-index: 105;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: calc(16px + var(--safe-top)) calc(16px + var(--safe-right)) calc(16px + var(--safe-bottom)) calc(16px + var(--safe-left));
+}
+
+#arenaSelect.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.arenas-grid {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  padding-bottom: 30px;
+}
+
+@media (min-width: 700px) {
+  .arenas-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .arenas-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.arena-card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--panel);
+  border: 1.5px solid var(--border-soft);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.1);
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  min-height: 130px;
+  animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (min-width: 700px) {
+  .arena-card {
+    grid-template-columns: 160px 1fr;
+  }
+}
+
+.arena-card:active {
+  transform: scale(0.98);
+  border-color: var(--cyan);
+  box-shadow: 0 0 35px var(--cyan-glow);
+}
+
+.arena-preview {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44px;
+  background: radial-gradient(circle at center, var(--arena-accent, var(--cyan-glow)), transparent 70%);
+  border-right: 1px solid var(--border-soft);
+  filter: drop-shadow(0 0 12px var(--arena-accent, var(--cyan-glow)));
+  overflow: hidden;
+}
+
+.arena-preview::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 229, 255, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 255, 0.15) 1px, transparent 1px);
+  background-size: 16px 16px;
+  opacity: 0.5;
+}
+
+.arena-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+
+.arena-name {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: 3px;
+  color: #fff;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px var(--arena-accent, var(--cyan-glow));
+}
+
+.arena-desc {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(216, 248, 255, 0.6);
+}
+
+.arena-meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+/* ============================================================
+   LEADERBOARD SCREEN
+   ============================================================ */
+
+#leaderboard {
+  position: fixed;
+  inset: 0;
+  z-index: 105;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: calc(16px + var(--safe-top)) calc(16px + var(--safe-right)) calc(16px + var(--safe-bottom)) calc(16px + var(--safe-left));
+}
+
+#leaderboard.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.lb-list {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 30px;
+}
+
+.lb-row {
+  display: grid;
+  grid-template-columns: 42px 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--panel);
+  border: 1.5px solid var(--border-soft);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.25s ease;
+  animation: cardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.lb-row.me {
+  border-color: var(--gold);
+  box-shadow: 0 0 20px var(--gold-glow);
+}
+
+.lb-row.top1 {
+  border-color: var(--gold);
+  background: linear-gradient(90deg, rgba(255, 213, 79, 0.08), var(--panel));
+}
+
+.lb-row.top2 {
+  border-color: rgba(0, 229, 255, 0.7);
+}
+
+.lb-row.top3 {
+  border-color: rgba(255, 140, 0, 0.6);
+}
+
+.lb-rank {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 18px;
+  color: var(--cyan);
+  text-align: center;
+  text-shadow: 0 0 10px var(--cyan-glow);
+}
+
+.lb-row.top1 .lb-rank { color: var(--gold); text-shadow: 0 0 12px var(--gold-glow); }
+.lb-row.top2 .lb-rank { color: #e0e0e0; text-shadow: 0 0 12px #e0e0e0; }
+.lb-row.top3 .lb-rank { color: #cd7f32; text-shadow: 0 0 12px rgba(205, 127, 50, 0.6); }
+
+.lb-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: #fff;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lb-mode {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: rgba(0, 229, 255, 0.5);
+  text-transform: uppercase;
+  font-family: var(--font-display);
+  font-weight: 500;
+}
+
+.lb-score {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 16px;
+  color: var(--cyan);
+  text-shadow: 0 0 10px var(--cyan-glow);
+  text-align: right;
+  min-width: 60px;
+}
+
+.lb-row.top1 .lb-score { color: var(--gold); text-shadow: 0 0 12px var(--gold-glow); }
+
+.lb-empty {
+  text-align: center;
+  padding: 60px 20px;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: rgba(0, 229, 255, 0.4);
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   GAME CANVAS + HUD
+   ============================================================ */
+
 #gameCanvas {
   position: fixed;
   inset: 0;
-  z-index: 1;
+  z-index: 5;
   display: block;
   opacity: 0;
   transition: opacity 0.5s ease;
@@ -156,36 +1225,40 @@ html, body {
   opacity: 1;
 }
 
-/* ============================================================
-   HUD
-   ============================================================ */
 #hud {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 10;
-  padding: calc(10px + env(safe-area-inset-top)) 14px 10px 14px;
+  z-index: 15;
+  padding: calc(10px + var(--safe-top)) calc(14px + var(--safe-right)) 10px calc(14px + var(--safe-left));
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.4s ease;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
+  gap: 8px;
 }
 
 #hud.active {
   opacity: 1;
 }
 
-.hud-block {
+.hud-side {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 70px;
 }
 
-.hud-block.right {
+.hud-side.center {
+  align-items: center;
+  flex: 1;
+}
+
+.hud-side.right {
   align-items: flex-end;
 }
 
@@ -201,10 +1274,11 @@ html, body {
   font-size: clamp(18px, 5vw, 26px);
   font-weight: 900;
   color: var(--cyan);
-  text-shadow: 0 0 12px var(--cyan-glow), 0 0 4px var(--cyan);
+  text-shadow: 0 0 14px var(--cyan-glow), 0 0 4px var(--cyan);
   letter-spacing: 2px;
   line-height: 1;
   transition: transform 0.15s ease;
+  font-variant-numeric: tabular-nums;
 }
 
 .hud-value.bump {
@@ -212,20 +1286,31 @@ html, body {
 }
 
 .hud-value.gold {
-  color: #ffd54f;
-  text-shadow: 0 0 12px rgba(255, 213, 79, 0.7), 0 0 4px #ffd54f;
+  color: var(--gold);
+  text-shadow: 0 0 14px var(--gold-glow), 0 0 4px var(--gold);
 }
 
-.hud-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding-top: 2px;
+.hud-value.red {
+  color: var(--red);
+  text-shadow: 0 0 14px var(--red-glow), 0 0 4px var(--red);
 }
 
+.hud-value.small {
+  font-size: clamp(14px, 3.5vw, 18px);
+}
+
+.hud-tag {
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: rgba(0, 229, 255, 0.7);
+  text-transform: uppercase;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Speed meter */
 .speed-meter {
-  width: clamp(70px, 20vw, 120px);
+  width: clamp(80px, 22vw, 140px);
   height: 4px;
   background: rgba(0, 229, 255, 0.12);
   border-radius: 2px;
@@ -239,698 +1324,248 @@ html, body {
   left: 0; top: 0;
   height: 100%;
   width: 10%;
-  background: linear-gradient(90deg, var(--cyan), #ffffff);
+  background: linear-gradient(90deg, var(--cyan-dim), var(--cyan), #fff);
   box-shadow: 0 0 12px var(--cyan);
   transition: width 0.3s ease;
+  border-radius: 2px;
 }
 
-.level-tag {
-  font-size: 9px;
-  letter-spacing: 3px;
-  color: rgba(0, 229, 255, 0.7);
-  font-weight: 700;
-}
-
-/* ============================================================
-   PAUSE BUTTON
-   ============================================================ */
-#pauseBtn {
+/* Ability bar */
+.ability-bar {
   position: fixed;
-  top: calc(10px + env(safe-area-inset-top));
+  bottom: calc(12px + var(--safe-bottom));
   left: 50%;
   transform: translateX(-50%);
-  z-index: 11;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--panel-bg);
-  border: 1.5px solid var(--cyan);
-  box-shadow: var(--border-glow);
-  display: none;
+  z-index: 16;
+  display: flex;
+  gap: 10px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.ability-bar.active {
+  opacity: 1;
+}
+
+.ability-slot {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1.5px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  font-size: 20px;
   color: var(--cyan);
-  font-size: 16px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.15);
+  transition: all 0.25s ease;
+  pointer-events: auto;
   cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
 }
 
-#pauseBtn.active {
-  display: flex;
+.ability-slot .ab-icon {
+  filter: drop-shadow(0 0 8px var(--cyan));
+  z-index: 2;
+  line-height: 1;
 }
 
-#pauseBtn:active {
-  transform: translateX(-50%) scale(0.9);
-  background: rgba(0, 229, 255, 0.25);
+.ability-slot .ab-key {
+  position: absolute;
+  bottom: 3px;
+  right: 5px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 8px;
+  color: rgba(0, 229, 255, 0.7);
+  z-index: 2;
+  letter-spacing: 1px;
+}
+
+.ability-slot .ab-fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent, rgba(0, 229, 255, 0.35));
+  transform-origin: bottom;
+  transform: scaleY(0);
+  transition: transform 0.1s linear;
+  z-index: 1;
+}
+
+.ability-slot.ready {
+  border-color: var(--cyan);
+  box-shadow: 0 0 22px var(--cyan-glow), inset 0 0 14px rgba(0, 229, 255, 0.2);
+  animation: abilityReady 1.5s ease-in-out infinite;
+}
+
+@keyframes abilityReady {
+  0%, 100% { box-shadow: 0 0 22px var(--cyan-glow), inset 0 0 14px rgba(0, 229, 255, 0.2); }
+  50% { box-shadow: 0 0 35px var(--cyan-glow), 0 0 55px rgba(0, 229, 255, 0.4), inset 0 0 20px rgba(0, 229, 255, 0.35); }
+}
+
+.ability-slot:active.ready {
+  transform: scale(0.9);
 }
 
 /* ============================================================
-   MENU
+   PAUSE MENU
    ============================================================ */
-#menu {
+
+#pauseMenu {
   position: fixed;
   inset: 0;
-  z-index: 20;
+  z-index: 200;
+  background: rgba(0, 5, 12, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  padding-top: calc(20px + env(safe-area-inset-top));
-  padding-bottom: calc(20px + env(safe-area-inset-bottom));
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.6s ease, visibility 0.6s ease;
-  overflow-y: auto;
-  overflow-x: hidden;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
 }
 
-#menu.active {
+#pauseMenu.active {
   opacity: 1;
   visibility: visible;
 }
 
-.menu-inner {
+.pause-inner {
   width: 100%;
-  max-width: 480px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  z-index: 2;
-}
-
-/* Title */
-.title-block {
+  max-width: 400px;
+  padding: 30px 24px;
+  background: var(--panel-solid);
+  border: 1.5px solid var(--border-bright);
+  border-radius: 20px;
+  box-shadow: 0 0 40px var(--cyan-glow), inset 0 0 30px rgba(0, 229, 255, 0.06);
   text-align: center;
-  margin-bottom: clamp(20px, 5vh, 40px);
-  position: relative;
-  animation: titleIn 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: pauseIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.title-main {
-  font-family: 'Orbitron', sans-serif;
+@keyframes pauseIn {
+  from { opacity: 0; transform: scale(0.94) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.pause-title {
+  font-family: var(--font-display);
   font-weight: 900;
-  font-size: clamp(48px, 16vw, 96px);
-  letter-spacing: clamp(8px, 3vw, 22px);
-  color: var(--white);
-  line-height: 0.95;
-  text-shadow:
-    0 0 10px var(--cyan),
-    0 0 25px var(--cyan),
-    0 0 50px var(--cyan),
-    0 0 90px var(--cyan);
-  padding-left: clamp(8px, 3vw, 22px);
-  animation: titleGlow 3s ease-in-out infinite;
-  position: relative;
+  font-size: clamp(24px, 7vw, 32px);
+  letter-spacing: 8px;
+  color: #fff;
+  text-shadow: 0 0 14px var(--cyan), 0 0 34px var(--cyan-glow);
+  text-transform: uppercase;
+  margin-bottom: 6px;
 }
 
-.title-sub {
-  margin-top: 8px;
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 700;
-  font-size: clamp(11px, 3vw, 16px);
-  letter-spacing: clamp(6px, 2.5vw, 14px);
-  color: var(--cyan);
-  opacity: 0.85;
-  text-shadow: 0 0 12px var(--cyan-glow);
-  padding-left: clamp(6px, 2.5vw, 14px);
+.pause-sub {
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: rgba(0, 229, 255, 0.5);
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  font-family: var(--font-display);
+  font-weight: 500;
 }
 
-.title-line {
-  width: clamp(180px, 60vw, 320px);
-  height: 1px;
-  margin: 16px auto 0;
-  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-  box-shadow: 0 0 12px var(--cyan);
-}
-
-@keyframes titleGlow {
-  0%, 100% {
-    text-shadow: 0 0 10px var(--cyan), 0 0 25px var(--cyan), 0 0 50px var(--cyan), 0 0 90px var(--cyan);
-  }
-  50% {
-    text-shadow: 0 0 15px var(--white), 0 0 35px var(--cyan), 0 0 70px var(--cyan), 0 0 120px var(--cyan);
-  }
-}
-
-@keyframes titleIn {
-  from { opacity: 0; transform: translateY(-30px) scale(0.9); filter: blur(10px); }
-  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-}
-
-/* Menu buttons */
-.menu-buttons {
-  width: 100%;
+.pause-actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  animation: menuIn 1s 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  gap: 10px;
 }
 
-@keyframes menuIn {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+/* ============================================================
+   GENERIC BUTTONS
+   ============================================================ */
 
-.menu-btn {
+.btn {
   position: relative;
   width: 100%;
-  padding: 16px 24px;
-  background: var(--panel-bg);
-  border: 1.5px solid rgba(0, 229, 255, 0.5);
-  border-radius: 10px;
+  padding: 15px 22px;
+  background: var(--panel);
+  border: 1.5px solid var(--border-soft);
+  border-radius: 12px;
   color: var(--cyan);
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(13px, 3.5vw, 15px);
+  font-size: clamp(12px, 3vw, 14px);
   letter-spacing: 4px;
   text-transform: uppercase;
   cursor: pointer;
   overflow: hidden;
-  transition: all 0.25s ease;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 0 12px rgba(0, 229, 255, 0.2), inset 0 0 8px rgba(0, 229, 255, 0.08);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   padding-left: 36px;
   text-shadow: 0 0 8px var(--cyan-glow);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-.menu-btn::before {
-  content: '';
+.btn .b-icon {
   position: absolute;
-  top: 0; left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.3), transparent);
-  transition: left 0.5s ease;
-}
-
-.menu-btn:hover::before,
-.menu-btn:active::before {
-  left: 100%;
-}
-
-.menu-btn:active {
-  transform: scale(0.97);
-  background: rgba(0, 229, 255, 0.2);
-  box-shadow: 0 0 25px var(--cyan-glow), inset 0 0 15px rgba(0, 229, 255, 0.3);
-}
-
-.menu-btn.primary {
-  border-color: var(--cyan);
-  border-width: 2px;
-  box-shadow: 0 0 22px var(--cyan-glow), inset 0 0 15px rgba(0, 229, 255, 0.15);
-  animation: primaryPulse 2.5s ease-in-out infinite;
-}
-
-@keyframes primaryPulse {
-  0%, 100% { box-shadow: 0 0 22px var(--cyan-glow), inset 0 0 15px rgba(0, 229, 255, 0.15); }
-  50% { box-shadow: 0 0 35px var(--cyan-glow), 0 0 60px rgba(0, 229, 255, 0.4), inset 0 0 20px rgba(0, 229, 255, 0.25); }
-}
-
-.menu-btn .icon {
-  position: absolute;
-  left: 14px;
+  left: 16px;
   font-size: 16px;
   opacity: 0.9;
 }
 
-.menu-btn .arrow {
-  margin-left: auto;
-  opacity: 0.5;
-  font-size: 14px;
-  transition: transform 0.25s ease;
-}
-
-.menu-btn:active .arrow {
-  transform: translateX(4px);
-}
-
-/* Stats row */
-.stats-row {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-top: 20px;
-  animation: menuIn 1s 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.stat-box {
-  padding: 12px 8px;
-  background: rgba(0, 20, 35, 0.6);
-  border: 1px solid rgba(0, 229, 255, 0.25);
-  border-radius: 8px;
-  text-align: center;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.06);
-}
-
-.stat-value {
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 900;
-  font-size: clamp(16px, 4.5vw, 22px);
-  color: var(--cyan);
-  text-shadow: 0 0 10px var(--cyan-glow);
-  line-height: 1;
-}
-
-.stat-label {
-  font-size: 8px;
-  letter-spacing: 2px;
-  color: rgba(0, 229, 255, 0.5);
-  text-transform: uppercase;
-  margin-top: 6px;
-  font-weight: 700;
-}
-
-/* Footer */
-.menu-footer {
-  margin-top: 24px;
-  font-size: 10px;
-  letter-spacing: 3px;
-  color: rgba(0, 229, 255, 0.35);
-  text-align: center;
-  animation: menuIn 1s 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-/* ============================================================
-   SETTINGS PANEL
-   ============================================================ */
-#settings {
-  position: fixed;
-  inset: 0;
-  z-index: 25;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: rgba(0, 5, 12, 0.9);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.4s ease, visibility 0.4s ease;
-  overflow-y: auto;
-}
-
-#settings.active {
-  opacity: 1;
-  visibility: visible;
-}
-
-.settings-inner {
-  width: 100%;
-  max-width: 440px;
-  padding: 24px 20px;
-  background: var(--panel-bg);
-  border: 1.5px solid rgba(0, 229, 255, 0.4);
-  border-radius: 14px;
-  box-shadow: 0 0 30px rgba(0, 229, 255, 0.2), inset 0 0 20px rgba(0, 229, 255, 0.05);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  animation: panelIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes panelIn {
-  from { opacity: 0; transform: translateY(20px) scale(0.96); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.settings-title {
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 900;
-  font-size: 18px;
-  letter-spacing: 6px;
-  color: var(--cyan);
-  text-align: center;
-  text-shadow: 0 0 14px var(--cyan-glow);
-  margin-bottom: 22px;
-}
-
-.setting-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 4px;
-  border-bottom: 1px solid rgba(0, 229, 255, 0.12);
-}
-
-.setting-row:last-of-type {
-  border-bottom: none;
-}
-
-.setting-name {
-  font-size: 11px;
-  letter-spacing: 3px;
-  color: rgba(0, 229, 255, 0.85);
-  text-transform: uppercase;
-  font-weight: 700;
-}
-
-/* Toggle */
-.toggle {
-  position: relative;
-  width: 52px;
-  height: 26px;
-  background: rgba(0, 229, 255, 0.12);
-  border: 1.5px solid rgba(0, 229, 255, 0.4);
-  border-radius: 14px;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  flex-shrink: 0;
-}
-
-.toggle::after {
+.btn::before {
   content: '';
   position: absolute;
-  top: 50%;
-  left: 3px;
-  transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: rgba(0, 229, 255, 0.5);
-  transition: all 0.25s ease;
-  box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+  inset: 0;
+  background: radial-gradient(circle at 20% 50%, rgba(0, 229, 255, 0.2), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
 }
 
-.toggle.on {
-  background: rgba(0, 229, 255, 0.3);
+.btn:hover::before,
+.btn:active::before {
+  opacity: 1;
+}
+
+.btn:active {
+  transform: scale(0.97);
   border-color: var(--cyan);
-  box-shadow: 0 0 14px var(--cyan-glow);
+  box-shadow: 0 0 22px var(--cyan-glow);
 }
 
-.toggle.on::after {
-  left: 31px;
-  background: var(--cyan);
-  box-shadow: 0 0 14px var(--cyan), 0 0 24px var(--cyan);
+.btn.primary {
+  border-color: var(--cyan);
+  border-width: 2px;
+  color: #fff;
+  box-shadow: 0 0 22px var(--cyan-glow), inset 0 0 15px rgba(0, 229, 255, 0.1);
 }
 
-/* Slider */
-.slider-wrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
-  max-width: 180px;
-  margin-left: 12px;
+.btn.danger {
+  border-color: var(--red);
+  color: var(--red);
+  text-shadow: 0 0 8px var(--red-glow);
 }
 
-.slider {
-  flex: 1;
-  height: 4px;
-  background: rgba(0, 229, 255, 0.15);
-  border-radius: 2px;
-  position: relative;
-  cursor: pointer;
-}
-
-.slider-fill {
-  position: absolute;
-  left: 0; top: 0;
-  height: 100%;
-  background: linear-gradient(90deg, var(--cyan-dim), var(--cyan));
-  border-radius: 2px;
-  box-shadow: 0 0 10px var(--cyan-glow);
-  transition: width 0.1s ease;
-}
-
-.slider-thumb {
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--cyan);
-  box-shadow: 0 0 12px var(--cyan), 0 0 20px var(--cyan-glow);
-  transition: left 0.1s ease, transform 0.15s ease;
-  pointer-events: none;
-}
-
-.slider-value {
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 700;
-  font-size: 11px;
-  color: var(--cyan);
-  min-width: 32px;
-  text-align: right;
-  text-shadow: 0 0 8px var(--cyan-glow);
-}
-
-/* Close button */
-.close-btn {
-  width: 100%;
-  margin-top: 20px;
-  padding: 14px;
-  background: rgba(0, 229, 255, 0.1);
-  border: 1.5px solid var(--cyan);
-  border-radius: 10px;
-  color: var(--cyan);
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-shadow: 0 0 8px var(--cyan-glow);
-}
-
-.close-btn:active {
-  background: rgba(0, 229, 255, 0.3);
-  transform: scale(0.98);
-}
-
-/* ============================================================
-   HOW TO PLAY PANEL
-   ============================================================ */
-#howto {
-  position: fixed;
-  inset: 0;
-  z-index: 25;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: rgba(0, 5, 12, 0.9);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.4s ease, visibility 0.4s ease;
-  overflow-y: auto;
-}
-
-#howto.active {
-  opacity: 1;
-  visibility: visible;
-}
-
-.howto-inner {
-  width: 100%;
-  max-width: 440px;
-  padding: 22px 20px;
-  background: var(--panel-bg);
-  border: 1.5px solid rgba(0, 229, 255, 0.4);
-  border-radius: 14px;
-  box-shadow: 0 0 30px rgba(0, 229, 255, 0.2);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  animation: panelIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  max-height: 85vh;
-  overflow-y: auto;
-}
-
-.howto-item {
-  display: flex;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(0, 229, 255, 0.1);
-  align-items: flex-start;
-}
-
-.howto-item:last-of-type {
-  border-bottom: none;
-}
-
-.howto-icon {
-  flex-shrink: 0;
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  background: rgba(0, 229, 255, 0.12);
-  border: 1px solid rgba(0, 229, 255, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  color: var(--cyan);
-  box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.15);
-}
-
-.howto-text {
-  flex: 1;
-  padding-top: 2px;
-}
-
-.howto-title {
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 2px;
-  color: var(--cyan);
-  text-transform: uppercase;
-  margin-bottom: 4px;
-  text-shadow: 0 0 8px var(--cyan-glow);
-}
-
-.howto-desc {
-  font-size: 11px;
-  letter-spacing: 0.5px;
-  line-height: 1.5;
-  color: rgba(216, 248, 255, 0.75);
-}
-
-/* ============================================================
-   GAME OVER SCREEN
-   ============================================================ */
-#gameover {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: radial-gradient(ellipse at center, rgba(40, 0, 20, 0.85) 0%, rgba(0, 0, 0, 0.95) 100%);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.5s ease, visibility 0.5s ease;
-  overflow-y: auto;
-}
-
-#gameover.active {
-  opacity: 1;
-  visibility: visible;
-}
-
-.gameover-inner {
-  width: 100%;
-  max-width: 440px;
-  text-align: center;
-  animation: gameoverIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes gameoverIn {
-  from { opacity: 0; transform: scale(0.9) translateY(20px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-.gameover-title {
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 900;
-  font-size: clamp(28px, 8vw, 44px);
-  letter-spacing: clamp(4px, 2vw, 10px);
-  color: var(--magenta);
-  text-shadow:
-    0 0 15px var(--magenta),
-    0 0 35px var(--magenta),
-    0 0 60px var(--magenta-glow);
-  margin-bottom: 8px;
-  animation: gameoverPulse 1.5s ease-in-out infinite;
-}
-
-@keyframes gameoverPulse {
-  0%, 100% { text-shadow: 0 0 15px var(--magenta), 0 0 35px var(--magenta), 0 0 60px var(--magenta-glow); }
-  50% { text-shadow: 0 0 25px #fff, 0 0 50px var(--magenta), 0 0 90px var(--magenta-glow); }
-}
-
-.gameover-sub {
-  font-size: 11px;
-  letter-spacing: 5px;
-  color: rgba(255, 43, 214, 0.7);
-  text-transform: uppercase;
-  margin-bottom: 30px;
-}
-
-.gameover-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.gameover-stat {
-  padding: 16px 12px;
-  background: rgba(0, 20, 35, 0.7);
-  border: 1.5px solid rgba(0, 229, 255, 0.35);
-  border-radius: 10px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.gameover-stat.new-record {
-  border-color: #ffd54f;
-  box-shadow: 0 0 25px rgba(255, 213, 79, 0.5);
-  animation: recordGlow 1.5s ease-in-out infinite;
-}
-
-@keyframes recordGlow {
-  0%, 100% { box-shadow: 0 0 25px rgba(255, 213, 79, 0.5); }
-  50% { box-shadow: 0 0 40px rgba(255, 213, 79, 0.8); }
-}
-
-.gameover-stat-value {
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 900;
-  font-size: clamp(24px, 7vw, 34px);
-  color: var(--cyan);
-  text-shadow: 0 0 15px var(--cyan-glow);
-  line-height: 1;
-}
-
-.gameover-stat.new-record .gameover-stat-value {
-  color: #ffd54f;
-  text-shadow: 0 0 15px rgba(255, 213, 79, 0.8);
-}
-
-.gameover-stat-label {
-  font-size: 9px;
-  letter-spacing: 3px;
-  color: rgba(0, 229, 255, 0.55);
-  text-transform: uppercase;
-  margin-top: 8px;
-  font-weight: 700;
-}
-
-.gameover-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.btn.danger:active {
+  background: rgba(255, 43, 94, 0.2);
+  box-shadow: 0 0 22px var(--red-glow);
 }
 
 /* ============================================================
    TOUCH CONTROLS
    ============================================================ */
+
 #touchControls {
   position: fixed;
   inset: 0;
-  z-index: 5;
+  z-index: 12;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.4s ease;
@@ -944,39 +1579,39 @@ html, body {
 
 .pad {
   position: absolute;
-  bottom: max(20px, env(safe-area-inset-bottom));
-  width: min(160px, 40vw);
-  height: min(160px, 40vw);
+  bottom: calc(12px + var(--safe-bottom));
+  width: min(170px, 42vw);
+  height: min(170px, 42vw);
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   grid-template-rows: 1fr 1fr 1fr;
   pointer-events: none;
+  gap: 4px;
 }
 
 .pad.left {
-  left: max(14px, env(safe-area-inset-left));
+  left: calc(12px + var(--safe-left));
 }
 
 .pad.right {
-  right: max(14px, env(safe-area-inset-right));
+  right: calc(12px + var(--safe-right));
 }
 
 .pad-btn {
   pointer-events: auto;
-  background: rgba(0, 20, 35, 0.55);
-  border: 1.5px solid rgba(0, 229, 255, 0.45);
+  background: rgba(0, 18, 32, 0.6);
+  border: 1.5px solid var(--border-soft);
   border-radius: 12px;
   color: var(--cyan);
-  font-size: clamp(18px, 4vw, 22px);
+  font-size: clamp(18px, 4.5vw, 22px);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 10px rgba(0, 229, 255, 0.25), inset 0 0 10px rgba(0, 229, 255, 0.08);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.22), inset 0 0 10px rgba(0, 229, 255, 0.06);
   text-shadow: 0 0 10px var(--cyan);
   transition: all 0.1s ease;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  margin: 3px;
   position: relative;
   overflow: hidden;
 }
@@ -985,7 +1620,7 @@ html, body {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at center, rgba(0, 229, 255, 0.5), transparent 70%);
+  background: radial-gradient(circle at center, rgba(0, 229, 255, 0.55), transparent 70%);
   opacity: 0;
   transition: opacity 0.15s ease;
 }
@@ -993,7 +1628,7 @@ html, body {
 .pad-btn.pressed {
   background: rgba(0, 229, 255, 0.35);
   box-shadow: 0 0 25px var(--cyan), inset 0 0 18px rgba(0, 229, 255, 0.4);
-  transform: scale(0.92);
+  transform: scale(0.9);
 }
 
 .pad-btn.pressed::after {
@@ -1011,19 +1646,28 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.3;
+  opacity: 0.28;
   font-size: 14px;
   color: var(--cyan);
+  pointer-events: none;
+  font-family: var(--font-display);
+  font-weight: 900;
+}
+
+/* Hide pads when game paused */
+#touchControls.hidden-pads .pad {
+  opacity: 0.15;
   pointer-events: none;
 }
 
 /* ============================================================
    COUNTDOWN
    ============================================================ */
+
 #countdown {
   position: fixed;
   inset: 0;
-  z-index: 15;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1037,114 +1681,934 @@ html, body {
 }
 
 .countdown-num {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-weight: 900;
-  font-size: clamp(80px, 30vw, 180px);
+  font-size: clamp(90px, 30vw, 200px);
   color: var(--cyan);
   text-shadow:
     0 0 20px var(--cyan),
     0 0 50px var(--cyan),
-    0 0 100px var(--cyan);
-  animation: countdownPop 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    0 0 100px var(--cyan),
+    0 0 150px var(--cyan);
+  animation: countdownPop 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+  letter-spacing: 8px;
 }
 
 @keyframes countdownPop {
-  0% { opacity: 0; transform: scale(2); filter: blur(20px); }
+  0% { opacity: 0; transform: scale(2.2); filter: blur(30px); }
   40% { opacity: 1; transform: scale(1); filter: blur(0); }
-  100% { opacity: 0; transform: scale(0.7); filter: blur(10px); }
+  100% { opacity: 0; transform: scale(0.75); filter: blur(12px); }
 }
 
 /* ============================================================
-   FLASH
+   GAME OVER SCREEN
    ============================================================ */
-#flash {
+
+#gameover {
   position: fixed;
   inset: 0;
-  z-index: 12;
-  background: #fff;
+  z-index: 220;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: radial-gradient(ellipse at center, rgba(40, 0, 20, 0.85) 0%, rgba(0, 0, 0, 0.96) 100%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+  overflow-y: auto;
 }
 
-#flash.active {
-  opacity: 0.5;
+#gameover.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.go-inner {
+  width: 100%;
+  max-width: 460px;
+  text-align: center;
+  animation: goIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  padding: 20px;
+}
+
+@keyframes goIn {
+  from { opacity: 0; transform: scale(0.9) translateY(24px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.go-status {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 6px;
+  color: rgba(255, 43, 214, 0.7);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.go-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(30px, 9vw, 52px);
+  letter-spacing: clamp(4px, 2vw, 10px);
+  color: var(--magenta);
+  text-shadow:
+    0 0 15px var(--magenta),
+    0 0 40px var(--magenta),
+    0 0 70px var(--magenta-glow);
+  margin-bottom: 6px;
+  animation: goTitlePulse 1.5s ease-in-out infinite;
+  text-transform: uppercase;
+}
+
+@keyframes goTitlePulse {
+  0%, 100% { text-shadow: 0 0 15px var(--magenta), 0 0 40px var(--magenta), 0 0 70px var(--magenta-glow); }
+  50% { text-shadow: 0 0 25px #fff, 0 0 55px var(--magenta), 0 0 100px var(--magenta-glow); }
+}
+
+.go-sub {
+  font-size: 12px;
+  letter-spacing: 4px;
+  color: rgba(255, 43, 214, 0.5);
+  text-transform: uppercase;
+  margin-bottom: 30px;
+  font-family: var(--font-display);
+  font-weight: 500;
+}
+
+.go-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.go-stat {
+  padding: 14px 12px;
+  background: rgba(0, 18, 32, 0.7);
+  border: 1.5px solid var(--border-soft);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  position: relative;
+}
+
+.go-stat.new-record {
+  border-color: var(--gold);
+  box-shadow: 0 0 25px var(--gold-glow);
+  animation: recordGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes recordGlow {
+  0%, 100% { box-shadow: 0 0 25px var(--gold-glow); }
+  50% { box-shadow: 0 0 45px var(--gold-glow), 0 0 80px rgba(255, 213, 79, 0.5); }
+}
+
+.go-stat.new-record::after {
+  content: 'РЕКОРД!';
+  position: absolute;
+  top: -8px;
+  right: 10px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 8px;
+  letter-spacing: 2px;
+  padding: 2px 8px;
+  background: var(--gold);
+  color: #1a1400;
+  border-radius: 4px;
+  box-shadow: 0 0 12px var(--gold-glow);
+}
+
+.go-stat-value {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(22px, 6.5vw, 32px);
+  color: var(--cyan);
+  text-shadow: 0 0 14px var(--cyan-glow);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.go-stat.new-record .go-stat-value {
+  color: var(--gold);
+  text-shadow: 0 0 14px var(--gold-glow);
+}
+
+.go-stat-label {
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: rgba(0, 229, 255, 0.55);
+  text-transform: uppercase;
+  margin-top: 6px;
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.go-xp {
+  padding: 12px 16px;
+  background: rgba(0, 18, 32, 0.7);
+  border: 1.5px solid var(--border-soft);
+  border-radius: 12px;
+  margin-bottom: 22px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  text-align: left;
+}
+
+.go-xp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.go-xp-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: rgba(0, 229, 255, 0.7);
+  text-transform: uppercase;
+}
+
+.go-xp-value {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 13px;
+  color: var(--cyan);
+  text-shadow: 0 0 10px var(--cyan-glow);
+  letter-spacing: 1px;
+}
+
+.go-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 /* ============================================================
-   UTILITIES
+   TOAST NOTIFICATIONS
+   ============================================================ */
+
+#toast {
+  position: fixed;
+  top: calc(70px + var(--safe-top));
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  z-index: 300;
+  padding: 12px 22px;
+  background: var(--panel-solid);
+  border: 1.5px solid var(--cyan);
+  border-radius: 12px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  box-shadow: 0 0 25px var(--cyan-glow);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  text-shadow: 0 0 8px var(--cyan-glow);
+  max-width: 90vw;
+  text-align: center;
+}
+
+#toast.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+#toast.gold {
+  border-color: var(--gold);
+  color: var(--gold);
+  box-shadow: 0 0 25px var(--gold-glow);
+  text-shadow: 0 0 8px var(--gold-glow);
+}
+
+#toast.red {
+  border-color: var(--red);
+  color: var(--red);
+  box-shadow: 0 0 25px var(--red-glow);
+  text-shadow: 0 0 8px var(--red-glow);
+}
+
+/* ============================================================
+   SETTINGS PANEL
+   ============================================================ */
+
+#settings {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: calc(16px + var(--safe-top)) calc(16px + var(--safe-right)) calc(16px + var(--safe-bottom)) calc(16px + var(--safe-left));
+}
+
+#settings.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.settings-body {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 22px 20px;
+  background: var(--panel);
+  border: 1.5px solid var(--border-soft);
+  border-radius: 16px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.15);
+}
+
+.settings-group {
+  margin-bottom: 20px;
+}
+
+.settings-group:last-child {
+  margin-bottom: 0;
+}
+
+.settings-group-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: rgba(0, 229, 255, 0.5);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 229, 255, 0.12);
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 4px;
+  gap: 12px;
+}
+
+.setting-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.setting-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  color: rgba(216, 248, 255, 0.9);
+  text-transform: uppercase;
+}
+
+.setting-hint {
+  font-size: 10px;
+  color: rgba(0, 229, 255, 0.45);
+  margin-top: 3px;
+  letter-spacing: 0.5px;
+}
+
+.toggle {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  background: rgba(0, 229, 255, 0.1);
+  border: 1.5px solid rgba(0, 229, 255, 0.35);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+}
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(0, 229, 255, 0.5);
+  transition: all 0.25s ease;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+}
+
+.toggle.on {
+  background: rgba(0, 229, 255, 0.28);
+  border-color: var(--cyan);
+  box-shadow: 0 0 14px var(--cyan-glow);
+}
+
+.toggle.on::after {
+  left: 29px;
+  background: var(--cyan);
+  box-shadow: 0 0 14px var(--cyan), 0 0 24px var(--cyan);
+}
+
+.slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  max-width: 200px;
+}
+
+.slider {
+  flex: 1;
+  height: 5px;
+  background: rgba(0, 229, 255, 0.15);
+  border-radius: 3px;
+  position: relative;
+  cursor: pointer;
+}
+
+.slider-fill {
+  position: absolute;
+  left: 0; top: 0;
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan-dim), var(--cyan));
+  border-radius: 3px;
+  box-shadow: 0 0 10px var(--cyan-glow);
+  transition: width 0.1s ease;
+}
+
+.slider-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 12px var(--cyan), 0 0 20px var(--cyan-glow);
+  transition: left 0.1s ease, transform 0.15s ease;
+  pointer-events: none;
+}
+
+.slider-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--cyan);
+  min-width: 44px;
+  text-align: right;
+  text-shadow: 0 0 8px var(--cyan-glow);
+  letter-spacing: 1px;
+}
+
+/* ============================================================
+   HOW TO PLAY
+   ============================================================ */
+
+#howto {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: calc(16px + var(--safe-top)) calc(16px + var(--safe-right)) calc(16px + var(--safe-bottom)) calc(16px + var(--safe-left));
+}
+
+#howto.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.howto-body {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 22px 20px;
+  background: var(--panel);
+  border: 1.5px solid var(--border-soft);
+  border-radius: 16px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.15);
+}
+
+.howto-item {
+  display: flex;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+  align-items: flex-start;
+}
+
+.howto-item:last-child {
+  border-bottom: none;
+}
+
+.howto-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(0, 229, 255, 0.1);
+  border: 1.5px solid rgba(0, 229, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--cyan);
+  box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.15);
+  filter: drop-shadow(0 0 8px var(--cyan-glow));
+}
+
+.howto-text {
+  flex: 1;
+  padding-top: 2px;
+}
+
+.howto-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 2.5px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  margin-bottom: 5px;
+  text-shadow: 0 0 8px var(--cyan-glow);
+}
+
+.howto-desc {
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  line-height: 1.6;
+  color: rgba(216, 248, 255, 0.72);
+}
+
+/* ============================================================
+   HIDDEN
    ============================================================ */
 .hidden {
   display: none !important;
 }
 
-/* Landscape tweaks */
-@media (orientation: landscape) and (max-height: 500px) {
-  .pad {
-    width: min(120px, 30vw);
-    height: min(120px, 30vw);
-  }
-  .title-main { font-size: clamp(38px, 10vw, 60px); }
-  .title-block { margin-bottom: 12px; }
-  .menu-buttons { gap: 8px; }
-  .menu-btn { padding: 12px 20px; padding-left: 32px; }
-  .menu-footer { margin-top: 12px; }
-  .stats-row { margin-top: 12px; }
-  #menu { padding: 10px; }
+/* ============================================================
+   SCROLLBAR HIDE
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
-/* Very small screens */
-@media (max-height: 600px) {
-  .title-block { margin-bottom: 16px; }
-  .stats-row { margin-top: 12px; }
-  .menu-footer { margin-top: 14px; }
-  .menu-buttons { gap: 10px; }
+/* ============================================================
+   LANDSCAPE ADJUSTMENTS
+   ============================================================ */
+@media (orientation: landscape) and (max-height: 500px) {
+  .menu-logo { font-size: clamp(38px, 10vw, 60px); }
+  .menu-tagline { margin-top: 12px; font-size: 11px; }
+  .menu-version { margin-top: 12px; }
+  .pad { width: min(120px, 30vw); height: min(120px, 30vw); }
+  .menu-grid { gap: 20px; }
+  .loader-title { font-size: clamp(32px, 10vw, 56px); }
+  .loader-rings { width: 100px; height: 100px; margin-bottom: 20px; }
+  .loader-bar { margin-top: 22px; }
+  .loader-tip { margin-top: 12px; }
+}
+
+/* ============================================================
+   VERY SMALL SCREENS
+   ============================================================ */
+@media (max-height: 640px) {
+  .menu-tagline { margin-top: 14px; }
+  .menu-version { margin-top: 16px; }
+  .profile-strip { padding: 10px 8px; }
+  .ability-slot { width: 46px; height: 46px; font-size: 17px; }
+}
+
+/* Focus states */
+button:focus-visible,
+.toggle:focus-visible,
+.pad-btn:focus-visible,
+.ability-slot:focus-visible,
+.mode-card:focus-visible,
+.arena-card:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
 }
 </style>
 </head>
 <body>
 
-<!-- ============ LOADER ============ -->
+<!-- ============================================================
+     BACKGROUND LAYER
+     ============================================================ -->
+<canvas id="bgCanvas"></canvas>
+<div id="vignette"></div>
+<div id="scanlines"></div>
+<div id="flash"></div>
+
+<!-- ============================================================
+     LOADING SCREEN
+     ============================================================ -->
 <div id="loader">
-  <div class="loader-logo">TRON</div>
-  <div class="loader-sub">LEGACY · LIGHT CYCLES</div>
+  <div class="loader-rings">
+    <div class="loader-ring"></div>
+    <div class="loader-ring"></div>
+    <div class="loader-ring"></div>
+    <div class="loader-core"></div>
+  </div>
+  <div class="loader-title">TRON</div>
+  <div class="loader-sub">LEGACY · LIGHT CYCLES ARENA</div>
   <div class="loader-bar"></div>
+  <div class="loader-tip" id="loaderTip">ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ...</div>
 </div>
 
-<!-- ============ BACKGROUND ============ -->
-<canvas id="bgCanvas"></canvas>
+<!-- ============================================================
+     MAIN MENU
+     ============================================================ -->
+<div id="mainMenu">
+  <div class="menu-grid">
+    <div class="menu-hero">
+      <div class="menu-eyebrow">ENCOM · PROGRAM 89.4</div>
+      <div class="menu-logo">TRON</div>
+      <div class="menu-tagline">
+        Световые байки · Цифровая арена · Легаси
+      </div>
+      <div class="menu-version">V 2.0.1 · BUILD 2024.11</div>
+    </div>
 
-<!-- ============ GAME ============ -->
+    <div class="menu-actions">
+      <button class="cta-primary" id="playBtn">
+        <span class="cta-icon">▶</span>
+        <span class="cta-text">
+          <span>БЫСТРАЯ ИГРА</span>
+          <span class="cta-sub">Классический режим на арене «Сетка»</span>
+        </span>
+        <span class="cta-arrow">»</span>
+      </button>
+
+      <div class="menu-secondary">
+        <button class="menu-tile" id="modesBtn">
+          <span class="tile-icon">⚔</span>
+          <span class="tile-title">Режимы</span>
+          <span class="tile-sub">6 режимов игры</span>
+        </button>
+        <button class="menu-tile" id="arenasBtn">
+          <span class="tile-icon">◈</span>
+          <span class="tile-title">Арены</span>
+          <span class="tile-sub">8 цифровых миров</span>
+        </button>
+        <button class="menu-tile" id="leaderboardBtn">
+          <span class="tile-icon">★</span>
+          <span class="tile-title">Рейтинг</span>
+          <span class="tile-sub">Лучшие результаты</span>
+        </button>
+        <button class="menu-tile" id="howtoBtn">
+          <span class="tile-icon">?</span>
+          <span class="tile-title">Обучение</span>
+          <span class="tile-sub">Как играть</span>
+        </button>
+      </div>
+
+      <div class="level-strip">
+        <div class="level-badge" id="levelBadge">1</div>
+        <div class="level-info">
+          <div class="level-row">
+            <div class="level-name" id="levelName">НОВИЧОК</div>
+            <div class="level-xp" id="levelXP">0 / 100 XP</div>
+          </div>
+          <div class="xp-bar">
+            <div class="xp-fill" id="xpFill" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-strip">
+        <div class="profile-stat">
+          <div class="ps-value gold" id="menuBest">0</div>
+          <div class="ps-label">Рекорд</div>
+        </div>
+        <div class="profile-stat">
+          <div class="ps-value" id="menuGames">0</div>
+          <div class="ps-label">Игр</div>
+        </div>
+        <div class="profile-stat">
+          <div class="ps-value" id="menuKills">0</div>
+          <div class="ps-label">Побед</div>
+        </div>
+        <div class="profile-stat">
+          <div class="ps-value" id="menuOrbs">0</div>
+          <div class="ps-label">Орбов</div>
+        </div>
+      </div>
+
+      <div class="menu-secondary" style="margin-top:0;">
+        <button class="menu-tile" id="settingsBtn" style="grid-column: span 2;">
+          <span class="tile-icon">⚙</span>
+          <span class="tile-title">Настройки</span>
+          <span class="tile-sub">Звук, вибрация, сложность</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODE SELECT
+     ============================================================ -->
+<div id="modeSelect">
+  <div class="screen-header">
+    <button class="back-btn" data-back>←</button>
+    <div>
+      <div class="screen-title">Режимы</div>
+      <div class="screen-subtitle">Выберите режим боя</div>
+    </div>
+  </div>
+  <div class="modes-grid" id="modesGrid"></div>
+</div>
+
+<!-- ============================================================
+     ARENA SELECT
+     ============================================================ -->
+<div id="arenaSelect">
+  <div class="screen-header">
+    <button class="back-btn" data-back>←</button>
+    <div>
+      <div class="screen-title">Арены</div>
+      <div class="screen-subtitle">Выберите цифровой мир</div>
+    </div>
+  </div>
+  <div class="arenas-grid" id="arenasGrid"></div>
+</div>
+
+<!-- ============================================================
+     LEADERBOARD
+     ============================================================ -->
+<div id="leaderboard">
+  <div class="screen-header">
+    <button class="back-btn" data-back>←</button>
+    <div>
+      <div class="screen-title">Рейтинг</div>
+      <div class="screen-subtitle">Ваши лучшие результаты</div>
+    </div>
+  </div>
+  <div class="lb-list" id="lbList"></div>
+</div>
+
+<!-- ============================================================
+     SETTINGS
+     ============================================================ -->
+<div id="settings">
+  <div class="screen-header">
+    <button class="back-btn" data-back>←</button>
+    <div>
+      <div class="screen-title">Настройки</div>
+      <div class="screen-subtitle">Конфигурация системы</div>
+    </div>
+  </div>
+  <div class="settings-body">
+    <div class="settings-group">
+      <div class="settings-group-title">Звук и вибрация</div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-name">Звук</div>
+          <div class="setting-hint">Процедурные звуки</div>
+        </div>
+        <div class="toggle on" id="soundToggle"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-name">Вибрация</div>
+          <div class="setting-hint">Тактильная отдача</div>
+        </div>
+        <div class="toggle on" id="vibrateToggle"></div>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">Графика</div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-name">Частицы</div>
+          <div class="setting-hint">Взрывы и эффекты</div>
+        </div>
+        <div class="toggle on" id="particlesToggle"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-name">След-шлейф</div>
+          <div class="setting-hint">Дополнительное свечение</div>
+        </div>
+        <div class="toggle on" id="trailGlowToggle"></div>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">Игровой баланс</div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-name">Сложность</div>
+        </div>
+        <div class="slider-wrap">
+          <div class="slider" id="diffSlider">
+            <div class="slider-fill" id="diffFill"></div>
+            <div class="slider-thumb" id="diffThumb"></div>
+          </div>
+          <div class="slider-value" id="diffValue">НОРМ</div>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-name">Сенсор</div>
+        </div>
+        <div class="slider-wrap">
+          <div class="slider" id="sensSlider">
+            <div class="slider-fill" id="sensFill"></div>
+            <div class="slider-thumb" id="sensThumb"></div>
+          </div>
+          <div class="slider-value" id="sensValue">СРЕД</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">Сброс</div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-name">Сбросить прогресс</div>
+          <div class="setting-hint">Удалит рекорды и уровень</div>
+        </div>
+        <button class="btn danger" id="resetBtn" style="width:auto;padding:10px 18px;padding-left:18px;font-size:11px;">
+          СБРОС
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     HOW TO PLAY
+     ============================================================ -->
+<div id="howto">
+  <div class="screen-header">
+    <button class="back-btn" data-back>←</button>
+    <div>
+      <div class="screen-title">Обучение</div>
+      <div class="screen-subtitle">Основы пилотирования</div>
+    </div>
+  </div>
+  <div class="howto-body">
+    <div class="howto-item">
+      <div class="howto-icon">🏍</div>
+      <div class="howto-text">
+        <div class="howto-title">Управление</div>
+        <div class="howto-desc">Мобильные кнопки внизу экрана, свайпы по полю. На ПК: стрелки, WASD. Кнопка Esc — пауза.</div>
+      </div>
+    </div>
+    <div class="howto-item">
+      <div class="howto-icon">✦</div>
+      <div class="howto-text">
+        <div class="howto-title">Энергия</div>
+        <div class="howto-desc">Собирайте светящиеся ромбы. Каждый даёт очки, комбо-множитель и ускоряет байк.</div>
+      </div>
+    </div>
+    <div class="howto-item">
+      <div class="howto-icon">⚡</div>
+      <div class="howto-text">
+        <div class="howto-title">Способности</div>
+        <div class="howto-desc">Собирайте энергию и активируйте: Рывок (Q), Щит (E), Импульс (R). Кнопки на ПК, слоты на телефоне.</div>
+      </div>
+    </div>
+    <div class="howto-item">
+      <div class="howto-icon">⚠</div>
+      <div class="howto-text">
+        <div class="howto-title">Опасность</div>
+        <div class="howto-desc">Стены, свой след, следы врагов. Одно касание — конец программы.</div>
+      </div>
+    </div>
+    <div class="howto-item">
+      <div class="howto-icon">⚔</div>
+      <div class="howto-text">
+        <div class="howto-title">Враги</div>
+        <div class="howto-desc">Разные типы: охотники, патрульные, боссы. Заманивайте в ловушки, отрезайте пути.</div>
+      </div>
+    </div>
+    <div class="howto-item">
+      <div class="howto-icon">◈</div>
+      <div class="howto-text">
+        <div class="howto-title">Арены</div>
+        <div class="howto-desc">8 уникальных миров с разными правилами: порталы, движущиеся препятствия, ускорители, ловушки.</div>
+      </div>
+    </div>
+    <div class="howto-item">
+      <div class="howto-icon">★</div>
+      <div class="howto-text">
+        <div class="howto-title">Прогресс</div>
+        <div class="howto-desc">За игру получайте XP, повышайте уровень, открывайте новые режимы, арены и способности.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     GAME
+     ============================================================ -->
 <canvas id="gameCanvas"></canvas>
 
-<!-- ============ HUD ============ -->
 <div id="hud">
-  <div class="hud-block">
+  <div class="hud-side">
     <div class="hud-label">Счёт</div>
     <div class="hud-value" id="scoreDisplay">0</div>
+    <div class="hud-tag" id="comboTag">×1</div>
   </div>
-  <div class="hud-center">
-    <div class="level-tag" id="levelTag">УРОВЕНЬ 1</div>
+  <div class="hud-side center">
+    <div class="hud-tag" id="levelTag">УРОВЕНЬ 1</div>
     <div class="speed-meter">
       <div class="speed-fill" id="speedFill"></div>
     </div>
+    <div class="hud-tag" id="modeTag" style="margin-top:4px;">КЛАССИКА</div>
   </div>
-  <div class="hud-block right">
+  <div class="hud-side right">
     <div class="hud-label">Рекорд</div>
     <div class="hud-value gold" id="bestDisplay">0</div>
+    <div class="hud-tag" id="fpsTag">60</div>
   </div>
 </div>
 
-<!-- ============ PAUSE BTN ============ -->
-<div id="pauseBtn">⏸</div>
+<div id="abilityBar" class="ability-bar">
+  <div class="ability-slot" data-ability="dash">
+    <span class="ab-icon">⚡</span>
+    <span class="ab-fill" id="dashFill"></span>
+    <span class="ab-key">Q</span>
+  </div>
+  <div class="ability-slot" data-ability="shield">
+    <span class="ab-icon">◈</span>
+    <span class="ab-fill" id="shieldFill"></span>
+    <span class="ab-key">E</span>
+  </div>
+  <div class="ability-slot" data-ability="pulse">
+    <span class="ab-icon">◉</span>
+    <span class="ab-fill" id="pulseFill"></span>
+    <span class="ab-key">R</span>
+  </div>
+</div>
 
-<!-- ============ COUNTDOWN ============ -->
-<div id="countdown"></div>
-
-<!-- ============ FLASH ============ -->
-<div id="flash"></div>
-
-<!-- ============ TOUCH CONTROLS ============ -->
 <div id="touchControls">
   <div class="pad left">
     <div class="pad-btn up" data-dir="up">▲</div>
@@ -1162,218 +2626,397 @@ html, body {
   </div>
 </div>
 
-<!-- ============ MENU ============ -->
-<div id="menu">
-  <div class="menu-inner">
-    <div class="title-block">
-      <div class="title-main">TRON</div>
-      <div class="title-sub">LEGACY</div>
-      <div class="title-line"></div>
-    </div>
+<div id="countdown"></div>
 
-    <div class="menu-buttons">
-      <button class="menu-btn primary" id="playBtn">
-        <span class="icon">▶</span>
-        ИГРАТЬ
-        <span class="arrow">»</span>
+<!-- ============================================================
+     PAUSE MENU
+     ============================================================ -->
+<div id="pauseMenu">
+  <div class="pause-inner">
+    <div class="pause-title">ПАУЗА</div>
+    <div class="pause-sub">Система приостановлена</div>
+    <div class="pause-actions">
+      <button class="btn primary" id="resumeBtn">
+        <span class="b-icon">▶</span> ПРОДОЛЖИТЬ
       </button>
-      <button class="menu-btn" id="howtoBtn">
-        <span class="icon">?</span>
-        КАК ИГРАТЬ
-        <span class="arrow">»</span>
+      <button class="btn" id="restartBtn">
+        <span class="b-icon">↻</span> ЗАНОВО
       </button>
-      <button class="menu-btn" id="settingsBtn">
-        <span class="icon">⚙</span>
-        НАСТРОЙКИ
-        <span class="arrow">»</span>
+      <button class="btn" id="settingsPauseBtn">
+        <span class="b-icon">⚙</span> НАСТРОЙКИ
+      </button>
+      <button class="btn danger" id="quitBtn">
+        <span class="b-icon">✕</span> ВЫЙТИ В МЕНЮ
       </button>
     </div>
-
-    <div class="stats-row">
-      <div class="stat-box">
-        <div class="stat-value" id="menuBest">0</div>
-        <div class="stat-label">Рекорд</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-value" id="menuGames">0</div>
-        <div class="stat-label">Игр</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-value" id="menuLevel">1</div>
-        <div class="stat-label">Уровень</div>
-      </div>
-    </div>
-
-    <div class="menu-footer">© ENCOM · 2024</div>
   </div>
 </div>
 
-<!-- ============ SETTINGS ============ -->
-<div id="settings">
-  <div class="settings-inner">
-    <div class="settings-title">НАСТРОЙКИ</div>
-
-    <div class="setting-row">
-      <div class="setting-name">Звук</div>
-      <div class="toggle on" id="soundToggle"></div>
-    </div>
-
-    <div class="setting-row">
-      <div class="setting-name">Вибрация</div>
-      <div class="toggle on" id="vibrateToggle"></div>
-    </div>
-
-    <div class="setting-row">
-      <div class="setting-name">Частицы</div>
-      <div class="toggle on" id="particlesToggle"></div>
-    </div>
-
-    <div class="setting-row">
-      <div class="setting-name">Сложность</div>
-      <div class="slider-wrap">
-        <div class="slider" id="diffSlider">
-          <div class="slider-fill" id="diffFill"></div>
-          <div class="slider-thumb" id="diffThumb"></div>
-        </div>
-        <div class="slider-value" id="diffValue">НОРМ</div>
-      </div>
-    </div>
-
-    <div class="setting-row">
-      <div class="setting-name">Сенсор</div>
-      <div class="slider-wrap">
-        <div class="slider" id="sensSlider">
-          <div class="slider-fill" id="sensFill"></div>
-          <div class="slider-thumb" id="sensThumb"></div>
-        </div>
-        <div class="slider-value" id="sensValue">СРЕД</div>
-      </div>
-    </div>
-
-    <button class="close-btn" id="settingsClose">ЗАКРЫТЬ</button>
-  </div>
-</div>
-
-<!-- ============ HOW TO PLAY ============ -->
-<div id="howto">
-  <div class="howto-inner">
-    <div class="settings-title">КАК ИГРАТЬ</div>
-
-    <div class="howto-item">
-      <div class="howto-icon">🏍</div>
-      <div class="howto-text">
-        <div class="howto-title">Управление</div>
-        <div class="howto-desc">Кнопки внизу экрана или свайпы в любую сторону. На ПК — стрелки или WASD.</div>
-      </div>
-    </div>
-
-    <div class="howto-item">
-      <div class="howto-icon">✦</div>
-      <div class="howto-text">
-        <div class="howto-title">Энергия</div>
-        <div class="howto-desc">Собирай светящиеся ромбы. Каждый даёт очки и немного ускоряет байк.</div>
-      </div>
-    </div>
-
-    <div class="howto-item">
-      <div class="howto-icon">⚠</div>
-      <div class="howto-text">
-        <div class="howto-title">Опасность</div>
-        <div class="howto-desc">Не врезайся в стены, свой след или следы врагов. Один удар — конец.</div>
-      </div>
-    </div>
-
-    <div class="howto-item">
-      <div class="howto-icon">⚔</div>
-      <div class="howto-text">
-        <div class="howto-title">Враги</div>
-        <div class="howto-desc">Цветные байки охотятся за тобой. Замани их в ловушку — пусть врежутся в твой след.</div>
-      </div>
-    </div>
-
-    <div class="howto-item">
-      <div class="howto-icon">★</div>
-      <div class="howto-text">
-        <div class="howto-title">Очки</div>
-        <div class="howto-desc">+10 за энергию, +25 за уничтоженного врага, бонусы за выживание.</div>
-      </div>
-    </div>
-
-    <button class="close-btn" id="howtoClose">ПОНЯТНО</button>
-  </div>
-</div>
-
-<!-- ============ GAME OVER ============ -->
+<!-- ============================================================
+     GAME OVER
+     ============================================================ -->
 <div id="gameover">
-  <div class="gameover-inner">
-    <div class="gameover-title">DERESOLUTION</div>
-    <div class="gameover-sub">Программа завершена</div>
+  <div class="go-inner">
+    <div class="go-status" id="goStatus">ПРОГРАММА ЗАВЕРШЕНА</div>
+    <div class="go-title" id="goTitle">DERESOLUTION</div>
+    <div class="go-sub" id="goSub">СИСТЕМА ENCOM · ЛОГ 89.4</div>
 
-    <div class="gameover-stats">
-      <div class="gameover-stat" id="finalScoreBox">
-        <div class="gameover-stat-value" id="finalScore">0</div>
-        <div class="gameover-stat-label">Счёт</div>
+    <div class="go-stats">
+      <div class="go-stat" id="finalScoreBox">
+        <div class="go-stat-value" id="finalScore">0</div>
+        <div class="go-stat-label">Счёт</div>
       </div>
-      <div class="gameover-stat" id="finalBestBox">
-        <div class="gameover-stat-value" id="finalBest">0</div>
-        <div class="gameover-stat-label">Рекорд</div>
+      <div class="go-stat" id="finalBestBox">
+        <div class="go-stat-value" id="finalBest">0</div>
+        <div class="go-stat-label">Рекорд</div>
+      </div>
+      <div class="go-stat">
+        <div class="go-stat-value" id="finalOrbs">0</div>
+        <div class="go-stat-label">Орбов</div>
+      </div>
+      <div class="go-stat">
+        <div class="go-stat-value" id="finalKills">0</div>
+        <div class="go-stat-label">Убийств</div>
       </div>
     </div>
 
-    <div class="gameover-buttons">
-      <button class="menu-btn primary" id="retryBtn">
-        <span class="icon">↻</span>
-        ЕЩЁ РАЗ
+    <div class="go-xp">
+      <div class="go-xp-header">
+        <div class="go-xp-title">Получено опыта</div>
+        <div class="go-xp-value" id="xpGained">+0 XP</div>
+      </div>
+      <div class="xp-bar">
+        <div class="xp-fill" id="goXpFill" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <div class="go-actions">
+      <button class="btn primary" id="retryBtn">
+        <span class="b-icon">↻</span> ЕЩЁ РАЗ
       </button>
-      <button class="menu-btn" id="menuBtn">
-        <span class="icon">⌂</span>
-        В МЕНЮ
+      <button class="btn" id="menuBtn">
+        <span class="b-icon">⌂</span> В ГЛАВНОЕ МЕНЮ
       </button>
     </div>
   </div>
 </div>
+
+<!-- ============================================================
+     TOAST
+     ============================================================ -->
+<div id="toast"></div>
 
 <script>
 /* ============================================================
-   TRON: LEGACY — LIGHT CYCLES
-   A complete light-cycle game with beautiful UI
+   TRON: LEGACY — LIGHT CYCLES ARENA
+   AAA-Style Single-File Game
    ============================================================ */
 (() => {
 'use strict';
 
 // ============================================================
-// CONFIG
+// CONSTANTS
 // ============================================================
-const CONFIG = {
-  baseTickMs: 95,
-  minTickMs: 50,
-  speedUpPerOrb: 1.2,
-  orbCount: 7,
-  enemySpawnScore: 60,
-  maxEnemies: 4,
-  enemyTurnCooldown: 0,
-  particleMax: 220,
-  trailFadeMin: 0.5,
-  trailFadeMax: 1.0,
-  countdownSteps: ['3', '2', '1', 'GO!'],
-  countdownDuration: 550,
+const VERSION = '2.0.1';
+const STORAGE_KEY = 'tron_arena_save_v2';
+
+// Directions
+const DIRS = {
+  up:    { x: 0, y: -1, name: 'up' },
+  down:  { x: 0, y: 1, name: 'down' },
+  left:  { x: -1, y: 0, name: 'left' },
+  right: { x: 1, y: 0, name: 'right' },
 };
 
-// ============================================================
-// STORAGE / PERSISTENT SETTINGS
-// ============================================================
-const STORAGE_KEY = 'tron_legacy_v1';
+// Game modes
+const MODES = {
+  classic: {
+    id: 'classic',
+    name: 'КЛАССИКА',
+    icon: '▶',
+    desc: 'Оригинальный режим. Растущий след, охотники, энергия.',
+    accent: 'var(--cyan)',
+    accentGlow: 'rgba(0, 229, 255, 0.55)',
+    chips: [{ text: 'БАЗОВЫЙ', cls: 'easy' }],
+    unlockLevel: 0,
+    enemyCount: 2,
+    enemyAggro: 1.0,
+    orbCount: 7,
+    speedMultiplier: 1.0,
+    hasBoss: false,
+  },
+  survival: {
+    id: 'survival',
+    name: 'ВЫЖИВАНИЕ',
+    icon: '⏱',
+    desc: 'Волны врагов растут. Каждые 30 сек — новая волна. Продержись как можно дольше.',
+    accent: 'var(--orange)',
+    accentGlow: 'var(--orange-glow)',
+    chips: [{ text: 'ВОЛНЫ', cls: '' }, { text: 'СРЕДНЕ', cls: '' }],
+    unlockLevel: 0,
+    enemyCount: 3,
+    enemyAggro: 1.1,
+    orbCount: 5,
+    speedMultiplier: 1.05,
+    hasBoss: false,
+    waveMode: true,
+  },
+  speedrun: {
+    id: 'speedrun',
+    name: 'СПИДРАН',
+    icon: '⏩',
+    desc: 'Максимальная скорость. Один удар — конец. Собери 50 орбов как можно быстрее.',
+    accent: 'var(--magenta)',
+    accentGlow: 'var(--magenta-glow)',
+    chips: [{ text: 'ЭКСПЕРТ', cls: 'hard' }, { text: 'СКОРОСТЬ', cls: 'hard' }],
+    unlockLevel: 2,
+    enemyCount: 4,
+    enemyAggro: 1.3,
+    orbCount: 4,
+    speedMultiplier: 1.4,
+    hasBoss: false,
+    goal: 50,
+  },
+  boss: {
+    id: 'boss',
+    name: 'БОСС-БИТВА',
+    icon: '☠',
+    desc: 'Гигантский байк-босс RINZLER. Уязвим только с тыла. Много фаз.',
+    accent: 'var(--red)',
+    accentGlow: 'var(--red-glow)',
+    chips: [{ text: 'БОСС', cls: 'hard' }, { text: 'ЭПИК', cls: 'hard' }],
+    unlockLevel: 3,
+    enemyCount: 0,
+    enemyAggro: 0,
+    orbCount: 5,
+    speedMultiplier: 1.0,
+    hasBoss: true,
+  },
+  chaos: {
+    id: 'chaos',
+    name: 'ХАОС',
+    icon: '⚡',
+    desc: 'Случайные модификаторы каждые 10 сек. Непредсказуемо и безумно.',
+    accent: 'var(--purple)',
+    accentGlow: 'rgba(157, 77, 255, 0.55)',
+    chips: [{ text: 'ХАОС', cls: '' }, { text: 'РАНДОМ', cls: '' }],
+    unlockLevel: 4,
+    enemyCount: 3,
+    enemyAggro: 1.15,
+    orbCount: 8,
+    speedMultiplier: 1.1,
+    hasBoss: false,
+    chaosMode: true,
+  },
+  zen: {
+    id: 'zen',
+    name: 'ДЗЕН',
+    icon: '☯',
+    desc: 'Без врагов. Только ты, арена и энергия. Медитативный полёт.',
+    accent: 'var(--green)',
+    accentGlow: 'rgba(0, 255, 136, 0.55)',
+    chips: [{ text: 'РЕЛАКС', cls: 'easy' }],
+    unlockLevel: 1,
+    enemyCount: 0,
+    enemyAggro: 0,
+    orbCount: 12,
+    speedMultiplier: 0.9,
+    hasBoss: false,
+  },
+};
 
+// Arenas
+const ARENAS = {
+  grid: {
+    id: 'grid',
+    name: 'СЕТКА',
+    icon: '◈',
+    desc: 'Классическая арена. Чистое поле, никаких помех.',
+    accent: 'rgba(0, 229, 255, 0.55)',
+    color: '#00e5ff',
+    features: [],
+    unlockLevel: 0,
+  },
+  maze: {
+    id: 'maze',
+    name: 'ЛАБИРИНТ',
+    icon: '▤',
+    desc: 'Стены по всему полю. Пробирайся между блоками.',
+    accent: 'rgba(255, 140, 0, 0.55)',
+    color: '#ff8c00',
+    features: ['walls'],
+    unlockLevel: 0,
+  },
+  portals: {
+    id: 'portals',
+    name: 'ПОРТАЛЫ',
+    icon: '◎',
+    desc: 'Края экрана соединены. Выход справа — вход слева.',
+    accent: 'rgba(157, 77, 255, 0.55)',
+    color: '#9d4dff',
+    features: ['portals'],
+    unlockLevel: 1,
+  },
+  moving: {
+    id: 'moving',
+    name: 'ПОТОК',
+    icon: '≋',
+    desc: 'Движущиеся препятствия. Следи за потоком.',
+    accent: 'rgba(255, 43, 214, 0.55)',
+    color: '#ff2bd6',
+    features: ['movingWalls'],
+    unlockLevel: 2,
+  },
+  energy: {
+    id: 'energy',
+    name: 'ЭНЕРГОСЕТЬ',
+    icon: '✧',
+    desc: 'Орбы появляются чаще. Энергия повсюду.',
+    accent: 'rgba(0, 255, 136, 0.55)',
+    color: '#00ff88',
+    features: ['energyBoost'],
+    unlockLevel: 2,
+  },
+  traps: {
+    id: 'traps',
+    name: 'ЛОВУШКИ',
+    icon: '⚠',
+    desc: 'Мины и ловушки. Наступать нельзя — объезжай.',
+    accent: 'rgba(255, 43, 94, 0.55)',
+    color: '#ff2b5e',
+    features: ['traps'],
+    unlockLevel: 3,
+  },
+  arena: {
+    id: 'arena',
+    name: 'КОЛИЗЕЙ',
+    icon: '⚔',
+    desc: 'Замкнутая арена с колоннами. Меньше места — больше боя.',
+    accent: 'rgba(255, 213, 79, 0.55)',
+    color: '#ffd54f',
+    features: ['pillars'],
+    unlockLevel: 4,
+  },
+  void: {
+    id: 'void',
+    name: 'ПУСТОТА',
+    icon: '☯',
+    desc: 'Всё темно. Видно только ближайшие клетки. Хардкор.',
+    accent: 'rgba(255, 255, 255, 0.55)',
+    color: '#ffffff',
+    features: ['fog'],
+    unlockLevel: 5,
+  },
+};
+
+// Enemy types
+const ENEMY_TYPES = {
+  hunter: {
+    id: 'hunter',
+    name: 'Охотник',
+    color: '#ff2bd6',
+    aggro: 1.3,
+    speed: 1.0,
+    weight: 5,
+  },
+  patrol: {
+    id: 'patrol',
+    name: 'Патрульный',
+    color: '#ff8c00',
+    aggro: 0.6,
+    speed: 0.9,
+    weight: 3,
+  },
+  flanker: {
+    id: 'flanker',
+    name: 'Фланкер',
+    color: '#9d4dff',
+    aggro: 1.5,
+    speed: 1.15,
+    weight: 2,
+  },
+  tank: {
+    id: 'tank',
+    name: 'Танк',
+    color: '#00ff88',
+    aggro: 0.8,
+    speed: 0.75,
+    weight: 1,
+  },
+};
+
+// Progression
+const LEVELS = [
+  { xp: 0,    name: 'НОВИЧОК' },
+  { xp: 100,  name: 'КУРСАНТ' },
+  { xp: 250,  name: 'ПИЛОТ' },
+  { xp: 500,  name: 'ГОНЩИК' },
+  { xp: 900,  name: 'ВЕТЕРАН' },
+  { xp: 1500, name: 'МАСТЕР' },
+  { xp: 2500, name: 'ЭЛИТА' },
+  { xp: 4000, name: 'ЛЕГЕНДА' },
+  { xp: 6000, name: 'ПРОГРАММА' },
+  { xp: 9000, name: 'БЕССМЕРТНЫЙ' },
+];
+
+// ============================================================
+// UTILITIES
+// ============================================================
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => root.querySelectorAll(sel);
+
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const rand = (a, b) => a + Math.random() * (b - a);
+const randInt = (a, b) => Math.floor(rand(a, b + 1));
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const distM = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+const now = () => performance.now();
+
+function vibrate(ms) {
+  if (!save.vibrate) return;
+  if (navigator.vibrate) {
+    try { navigator.vibrate(ms); } catch (e) {}
+  }
+}
+
+function formatNumber(n) {
+  return Math.floor(n).toLocaleString('ru-RU');
+}
+
+function formatTime(ms) {
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  const ss = (s % 60).toString().padStart(2, '0');
+  return `${m}:${ss}`;
+}
+
+// ============================================================
+// SAVE / STORAGE
+// ============================================================
 const defaultSave = {
+  version: VERSION,
   best: 0,
   gamesPlayed: 0,
+  totalOrbs: 0,
+  totalKills: 0,
+  totalPlaytimeMs: 0,
   highestLevel: 1,
+  xp: 0,
   sound: true,
   vibrate: true,
   particles: true,
-  difficulty: 1, // 0 easy, 1 normal, 2 hard
-  sensitivity: 1, // 0 low, 1 med, 2 high
+  trailGlow: true,
+  difficulty: 1,
+  sensitivity: 1,
+  unlockedModes: ['classic', 'survival'],
+  unlockedArenas: ['grid', 'maze'],
+  scores: [], // { score, mode, arena, time, date }
+  bestByMode: {},
 };
+
+let save = loadSave();
 
 function loadSave() {
   try {
@@ -1392,29 +3035,13 @@ function persistSave() {
   } catch (e) {}
 }
 
-let save = loadSave();
-
-// ============================================================
-// UTILITIES
-// ============================================================
-const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => document.querySelectorAll(sel);
-
-const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-const lerp = (a, b, t) => a + (b - a) * t;
-const rand = (a, b) => a + Math.random() * (b - a);
-const randInt = (a, b) => Math.floor(rand(a, b + 1));
-const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-
-function vibrate(ms) {
-  if (!save.vibrate) return;
-  if (navigator.vibrate) {
-    try { navigator.vibrate(ms); } catch (e) {}
-  }
+function resetSave() {
+  save = { ...defaultSave };
+  persistSave();
 }
 
 // ============================================================
-// AUDIO ENGINE (Web Audio API — procedural, no files)
+// AUDIO ENGINE
 // ============================================================
 const Audio = (() => {
   let ctx = null;
@@ -1428,7 +3055,7 @@ const Audio = (() => {
       if (!AC) return;
       ctx = new AC();
       masterGain = ctx.createGain();
-      masterGain.gain.value = 0.18;
+      masterGain.gain.value = 0.16;
       masterGain.connect(ctx.destination);
     } catch (e) { ctx = null; }
   }
@@ -1439,10 +3066,10 @@ const Audio = (() => {
     }
   }
 
-  function beep(freq = 440, dur = 0.08, type = 'sine', vol = 0.3, slideTo = null) {
+  function tone(freq, dur, type = 'sine', vol = 0.3, slideTo = null, delay = 0) {
     if (!enabled || !ctx) return;
     resume();
-    const t0 = ctx.currentTime;
+    const t0 = ctx.currentTime + delay;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = type;
@@ -1459,10 +3086,10 @@ const Audio = (() => {
     osc.stop(t0 + dur + 0.02);
   }
 
-  function noise(dur = 0.15, vol = 0.2, filterFreq = 1200) {
+  function noise(dur = 0.15, vol = 0.2, filterFreq = 1200, delay = 0) {
     if (!enabled || !ctx) return;
     resume();
-    const t0 = ctx.currentTime;
+    const t0 = ctx.currentTime + delay;
     const bufSize = Math.floor(ctx.sampleRate * dur);
     const buffer = ctx.createBuffer(1, bufSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
@@ -1480,48 +3107,80 @@ const Audio = (() => {
     src.start(t0);
   }
 
-  return {
+  const api = {
     init, resume,
     setEnabled(v) { enabled = v; if (v) init(); },
-    isEnabled() { return enabled; },
-    ui() { beep(880, 0.05, 'sine', 0.15); },
-    uiBack() { beep(440, 0.06, 'sine', 0.12); },
-    orb() { 
-      beep(1200, 0.08, 'sine', 0.25, 1800);
-      setTimeout(() => beep(1800, 0.06, 'sine', 0.15, 2400), 30);
+    isEnabled: () => enabled,
+
+    // UI
+    ui()      { tone(880, 0.05, 'sine', 0.12); },
+    uiBack()  { tone(440, 0.06, 'sine', 0.10); },
+    uiError() { tone(180, 0.15, 'sawtooth', 0.15, 120); },
+    uiClick() { tone(1100, 0.04, 'square', 0.08); },
+
+    // Gameplay
+    orb() {
+      tone(1200, 0.08, 'sine', 0.22, 1800);
+      tone(1800, 0.06, 'sine', 0.12, 2400, 0.03);
+    },
+    combo(n) {
+      const base = 1400 + n * 80;
+      tone(base, 0.06, 'triangle', 0.15, base * 1.4);
     },
     crash() {
-      noise(0.35, 0.35, 800);
-      beep(140, 0.35, 'sawtooth', 0.3, 40);
+      noise(0.4, 0.35, 700);
+      tone(140, 0.4, 'sawtooth', 0.3, 40);
+      tone(80, 0.5, 'sine', 0.2, 30, 0.05);
     },
     enemyKill() {
-      noise(0.2, 0.25, 1500);
-      beep(300, 0.15, 'square', 0.2, 100);
+      noise(0.22, 0.25, 1500);
+      tone(300, 0.16, 'square', 0.2, 100);
+      tone(500, 0.1, 'sine', 0.15, 250, 0.05);
     },
     countdown(last = false) {
       if (last) {
-        beep(1200, 0.25, 'sine', 0.3, 1800);
+        tone(1200, 0.28, 'sine', 0.28, 1800);
+        tone(1800, 0.2, 'triangle', 0.15, 2400, 0.05);
       } else {
-        beep(600, 0.12, 'sine', 0.25);
+        tone(600, 0.12, 'sine', 0.22);
       }
     },
     start() {
-      beep(220, 0.3, 'sawtooth', 0.2, 880);
-      setTimeout(() => beep(880, 0.4, 'sine', 0.2, 1400), 200);
+      tone(220, 0.32, 'sawtooth', 0.18, 880);
+      tone(880, 0.4, 'sine', 0.18, 1400, 0.2);
     },
     gameover() {
-      beep(400, 0.5, 'sawtooth', 0.25, 80);
-      setTimeout(() => beep(200, 0.6, 'sine', 0.2, 60), 250);
+      tone(400, 0.5, 'sawtooth', 0.22, 80);
+      tone(200, 0.6, 'sine', 0.18, 60, 0.25);
     },
     newRecord() {
-      const notes = [660, 880, 1100, 1320];
-      notes.forEach((n, i) => setTimeout(() => beep(n, 0.15, 'sine', 0.25), i * 90));
-    }
+      const notes = [660, 880, 1100, 1320, 1760];
+      notes.forEach((n, i) => tone(n, 0.15, 'sine', 0.22, n * 1.05, i * 0.08));
+    },
+    levelUp() {
+      const notes = [440, 660, 880, 1320];
+      notes.forEach((n, i) => tone(n, 0.12, 'triangle', 0.2, n * 1.1, i * 0.06));
+    },
+    ability() {
+      tone(700, 0.08, 'square', 0.18, 1400);
+      tone(1400, 0.12, 'sine', 0.14, 2000, 0.04);
+    },
+    abilityReady() {
+      tone(1500, 0.08, 'sine', 0.12, 1800);
+    },
+    pause() {
+      tone(600, 0.1, 'sine', 0.15, 400);
+    },
+    unpause() {
+      tone(400, 0.1, 'sine', 0.15, 700);
+    },
   };
+
+  return api;
 })();
 
 // ============================================================
-// BACKGROUND ANIMATION (persistent grid with moving lights)
+// BACKGROUND (persistent animated grid)
 // ============================================================
 const Background = (() => {
   const canvas = $('#bgCanvas');
@@ -1529,18 +3188,30 @@ const Background = (() => {
   let W = 0, H = 0, DPR = 1;
   let rafId = null;
   let running = true;
-  let t0 = performance.now();
+  let t0 = now();
 
-  // Moving dots for atmosphere
   const dots = [];
-  const NUM_DOTS = 40;
+  const NUM_DOTS = 50;
   for (let i = 0; i < NUM_DOTS; i++) {
     dots.push({
       x: Math.random(), y: Math.random(),
-      vx: rand(-0.0002, 0.0002),
-      vy: rand(-0.0002, 0.0002),
-      size: rand(0.5, 1.6),
+      vx: rand(-0.0003, 0.0003),
+      vy: rand(-0.0003, 0.0003),
+      size: rand(0.5, 1.8),
       hue: Math.random() < 0.85 ? 190 : (Math.random() < 0.5 ? 300 : 30),
+      phase: Math.random() * Math.PI * 2,
+    });
+  }
+
+  const streaks = [];
+  for (let i = 0; i < 6; i++) {
+    streaks.push({
+      x: Math.random(), y: Math.random(),
+      vx: rand(0.001, 0.003) * (Math.random() < 0.5 ? -1 : 1),
+      vy: rand(0.0005, 0.0015),
+      len: rand(0.05, 0.15),
+      hue: Math.random() < 0.7 ? 190 : 300,
+      alpha: rand(0.15, 0.35),
       phase: Math.random() * Math.PI * 2,
     });
   }
@@ -1559,7 +3230,6 @@ const Background = (() => {
   function draw(t) {
     const time = (t - t0) / 1000;
 
-    // Radial vignette background
     const grad = ctx.createRadialGradient(W * 0.5, H * 0.5, 0, W * 0.5, H * 0.5, Math.max(W, H) * 0.75);
     grad.addColorStop(0, '#001428');
     grad.addColorStop(0.55, '#000a18');
@@ -1567,15 +3237,13 @@ const Background = (() => {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
 
-    // Perspective grid — animated
+    // Grid
     const gridSize = 60;
     const scrollY = (time * 30) % gridSize;
     const scrollX = (time * 18) % gridSize;
 
-    // Horizontal lines with slight perspective
     ctx.strokeStyle = 'rgba(0, 180, 220, 0.09)';
     ctx.lineWidth = 1;
-    ctx.beginPath();
     for (let y = -gridSize + scrollY; y < H + gridSize; y += gridSize) {
       const t2 = y / H;
       const alpha = 0.04 + 0.10 * Math.sin(t2 * Math.PI);
@@ -1596,17 +3264,45 @@ const Background = (() => {
     }
     ctx.globalAlpha = 1;
 
-    // Pulsing horizon line in center
+    // Horizon pulse
     const pulse = 0.5 + 0.5 * Math.sin(time * 1.2);
     const horizonY = H * 0.55;
-    const hGrad = ctx.createLinearGradient(0, horizonY - 40, 0, horizonY + 40);
+    const hGrad = ctx.createLinearGradient(0, horizonY - 60, 0, horizonY + 60);
     hGrad.addColorStop(0, 'rgba(0, 229, 255, 0)');
     hGrad.addColorStop(0.5, `rgba(0, 229, 255, ${0.06 * pulse})`);
     hGrad.addColorStop(1, 'rgba(0, 229, 255, 0)');
     ctx.fillStyle = hGrad;
-    ctx.fillRect(0, horizonY - 40, W, 80);
+    ctx.fillRect(0, horizonY - 60, W, 120);
 
-    // Moving dots
+    // Streaks
+    for (const s of streaks) {
+      s.x += s.vx;
+      s.y += s.vy;
+      if (s.x < -0.2) s.x = 1.2;
+      if (s.x > 1.2) s.x = -0.2;
+      if (s.y < -0.2) s.y = 1.2;
+      if (s.y > 1.2) s.y = -0.2;
+
+      const px = s.x * W;
+      const py = s.y * H;
+      const pl = s.len * Math.max(W, H);
+      const twinkle = 0.6 + 0.4 * Math.sin(time * 2 + s.phase);
+
+      ctx.save();
+      ctx.globalAlpha = s.alpha * twinkle;
+      ctx.strokeStyle = `hsl(${s.hue}, 100%, 60%)`;
+      ctx.lineWidth = 1.5;
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = `hsl(${s.hue}, 100%, 60%)`;
+      ctx.beginPath();
+      const nrm = Math.hypot(s.vx, s.vy);
+      ctx.moveTo(px, py);
+      ctx.lineTo(px - s.vx / nrm * pl, py - s.vy / nrm * pl);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Dots
     for (const d of dots) {
       d.x += d.vx;
       d.y += d.vy;
@@ -1618,20 +3314,15 @@ const Background = (() => {
       const dx = d.x * W;
       const dy = d.y * H;
       const twinkle = 0.4 + 0.6 * Math.sin(time * 2 + d.phase);
-      const hue = d.hue;
-      ctx.fillStyle = `hsla(${hue}, 100%, 60%, ${0.5 * twinkle})`;
+
+      ctx.fillStyle = `hsla(${d.hue}, 100%, 60%, ${0.5 * twinkle})`;
       ctx.shadowBlur = 12;
-      ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
+      ctx.shadowColor = `hsl(${d.hue}, 100%, 60%)`;
       ctx.beginPath();
       ctx.arc(dx, dy, d.size * twinkle + 0.4, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.shadowBlur = 0;
-
-    // Subtle scanlines
-    if (Math.random() < 1) {
-      // draw scanlines once (static). Use offscreen? Skip for perf — draw sparse.
-    }
   }
 
   function loop(t) {
@@ -1644,7 +3335,7 @@ const Background = (() => {
     resize();
     running = true;
     if (rafId) cancelAnimationFrame(rafId);
-    t0 = performance.now();
+    t0 = now();
     rafId = requestAnimationFrame(loop);
   }
 
@@ -1654,1263 +3345,22 @@ const Background = (() => {
     rafId = null;
   }
 
-  window.addEventListener('resize', () => {
-    resize();
-  });
+  window.addEventListener('resize', () => { resize(); });
+  window.addEventListener('orientationchange', () => { setTimeout(resize, 250); });
 
-  return { start, stop };
+  return { start, stop, resize };
 })();
 
-// ============================================================
-// GAME ENGINE
-// ============================================================
-const Game = (() => {
-  const canvas = $('#gameCanvas');
-  const ctx = canvas.getContext('2d');
-  let W = 0, H = 0, DPR = 1;
-
-  // Grid
-  let cell = 22;
-  let cols = 0, rows = 0;
-  let fieldW = 0, fieldH = 0;
-  let offX = 0, offY = 0;
-
-  // State
-  let state = 'idle'; // idle | countdown | playing | paused | over
-  let player = null;
-  let trail = [];
-  let trailSet = new Set();
-  let orbs = [];
-  let enemies = [];
-  let particles = [];
-  let stars = [];
-  let score = 0;
-  let level = 1;
-  let tickMs = CONFIG.baseTickMs;
-  let acc = 0;
-  let lastTime = 0;
-  let dir = { x: 1, y: 0 };
-  let nextDir = { x: 1, y: 0 };
-  let rafId = null;
-  let countdownIdx = 0;
-  let countdownTimer = 0;
-  let screenShake = 0;
-  let comboCount = 0;
-  let comboTimer = 0;
-  let timeSinceLastOrb = 0;
-
-  // ============================================================
-  // RESIZE
-  // ============================================================
-  function resize() {
-    DPR = Math.min(window.devicePixelRatio || 1, 2);
-    W = window.innerWidth;
-    H = window.innerHeight;
-    canvas.width = W * DPR;
-    canvas.height = H * DPR;
-    canvas.style.width = W + 'px';
-    canvas.style.height = H + 'px';
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-
-    computeGrid();
-  }
-
-  function computeGrid() {
-    // Leave margin at top (HUD) and bottom (controls)
-    const isTouch = matchMedia('(pointer: coarse)').matches;
-    const topMargin = 70;
-    const bottomMargin = isTouch ? Math.min(H * 0.28, 220) : 40;
-    const sideMargin = 10;
-
-    const availableH = H - topMargin - bottomMargin;
-    const availableW = W - sideMargin * 2;
-
-    // Target ~ 18-24 cells horizontally
-    const targetCols = W < 500 ? 16 : (W < 900 ? 22 : 28);
-    cell = Math.floor(availableW / targetCols);
-    cell = clamp(cell, 16, 34);
-
-    cols = Math.floor(availableW / cell);
-    rows = Math.floor(availableH / cell);
-
-    // Ensure odd number of cells for centering feel
-    if (cols % 2 === 0) cols -= 1;
-    if (rows % 2 === 0) rows -= 1;
-
-    fieldW = cols * cell;
-    fieldH = rows * cell;
-    offX = Math.floor((W - fieldW) / 2);
-    offY = topMargin + Math.floor((availableH - fieldH) / 2);
-  }
-
-  // ============================================================
-  // INIT / RESET
-  // ============================================================
-  function reset() {
-    computeGrid();
-
-    const startX = Math.floor(cols * 0.25);
-    const startY = Math.floor(rows / 2);
-
-    player = { x: startX, y: startY };
-    trail = [{ x: startX, y: startY }];
-    trailSet = new Set([startX + ',' + startY]);
-
-    orbs = [];
-    enemies = [];
-    particles = [];
-    stars = [];
-
-    score = 0;
-    level = 1;
-    tickMs = CONFIG.baseTickMs;
-    acc = 0;
-    dir = { x: 1, y: 0 };
-    nextDir = { x: 1, y: 0 };
-    screenShake = 0;
-    comboCount = 0;
-    comboTimer = 0;
-    timeSinceLastOrb = 0;
-
-    // Difficulty tuning
-    const diffMul = [1.15, 1.0, 0.85][save.difficulty];
-    tickMs = Math.floor(CONFIG.baseTickMs * diffMul);
-
-    // Generate stars (background decoration inside the field)
-    for (let i = 0; i < 60; i++) {
-      stars.push({
-        x: Math.random() * fieldW,
-        y: Math.random() * fieldH,
-        size: rand(0.4, 1.4),
-        phase: Math.random() * Math.PI * 2,
-      });
-    }
-
-    // Initial orbs
-    const orbCount = CONFIG.orbCount + (save.difficulty === 0 ? 2 : save.difficulty === 2 ? -2 : 0);
-    for (let i = 0; i < Math.max(3, orbCount); i++) spawnOrb();
-
-    updateHUD();
-  }
-
-  // ============================================================
-  // SPAWNERS
-  // ============================================================
-  function spawnOrb() {
-    for (let tries = 0; tries < 200; tries++) {
-      const x = randInt(1, cols - 2);
-      const y = randInt(1, rows - 2);
-      const key = x + ',' + y;
-      if (trailSet.has(key)) continue;
-      if (orbs.some(o => o.x === x && o.y === y)) continue;
-      if (enemies.some(e => e.x === x && e.y === y)) continue;
-      if (player && player.x === x && player.y === y) continue;
-
-      orbs.push({
-        x, y,
-        born: performance.now(),
-        phase: Math.random() * Math.PI * 2,
-      });
-      return;
-    }
-  }
-
-  function spawnEnemy() {
-    if (enemies.length >= CONFIG.maxEnemies) return;
-
-    const side = randInt(0, 3);
-    let x, y, dx = 0, dy = 0;
-
-    if (side === 0) { x = 0; y = randInt(2, rows - 3); dx = 1; dy = 0; }
-    else if (side === 1) { x = cols - 1; y = randInt(2, rows - 3); dx = -1; dy = 0; }
-    else if (side === 2) { x = randInt(2, cols - 3); y = 0; dx = 0; dy = 1; }
-    else { x = randInt(2, cols - 3); y = rows - 1; dx = 0; dy = -1; }
-
-    // Step inside
-    x += dx;
-    y += dy;
-
-    if (x < 0 || x >= cols || y < 0 || y >= rows) return;
-    if (trailSet.has(x + ',' + y)) return;
-
-    const colors = ['#ff2bd6', '#ff8c00', '#7d2bff', '#00ff88'];
-    const color = colors[enemies.length % colors.length];
-
-    const speedMul = [1.05, 1.0, 0.92][save.difficulty];
-    enemies.push({
-      x, y, dx, dy,
-      trail: new Set([x + ',' + y]),
-      trailArr: [{ x, y }],
-      color,
-      phase: Math.random() * Math.PI * 2,
-      speed: speedMul,
-      acc: 0,
-    });
-  }
-
-  // ============================================================
-  // INPUT
-  // ============================================================
-  function turn(d) {
-    if (state !== 'playing') return;
-    if (d.x === -dir.x && d.y === -dir.y) return;
-    if (d.x === nextDir.x && d.y === nextDir.y) return;
-    nextDir = d;
-    Audio.ui();
-  }
-
-  // Touch pad buttons
-  $$('.pad-btn').forEach(btn => {
-    const dirMap = {
-      up: { x: 0, y: -1 },
-      down: { x: 0, y: 1 },
-      left: { x: -1, y: 0 },
-      right: { x: 1, y: 0 },
-    };
-    const handler = (e) => {
-      e.preventDefault();
-      const d = dirMap[btn.dataset.dir];
-      if (d) turn(d);
-      btn.classList.add('pressed');
-      vibrate(10);
-      setTimeout(() => btn.classList.remove('pressed'), 120);
-    };
-    btn.addEventListener('touchstart', handler, { passive: false });
-    btn.addEventListener('mousedown', handler);
-  });
-
-  // Swipe on canvas
-  let touchStart = null;
-  const swipeThreshold = [40, 28, 18][save.sensitivity];
-
-  canvas.addEventListener('touchstart', (e) => {
-    if (state !== 'playing') return;
-    const t = e.touches[0];
-    touchStart = { x: t.clientX, y: t.clientY, time: performance.now() };
-  }, { passive: true });
-
-  canvas.addEventListener('touchmove', (e) => {
-    if (!touchStart || state !== 'playing') return;
-    const t = e.touches[0];
-    const dx = t.clientX - touchStart.x;
-    const dy = t.clientY - touchStart.y;
-    if (Math.abs(dx) < swipeThreshold && Math.abs(dy) < swipeThreshold) return;
-    if (Math.abs(dx) > Math.abs(dy)) {
-      turn({ x: dx > 0 ? 1 : -1, y: 0 });
-    } else {
-      turn({ x: 0, y: dy > 0 ? 1 : -1 });
-    }
-    touchStart = null;
-  }, { passive: true });
-
-  canvas.addEventListener('touchend', () => { touchStart = null; }, { passive: true });
-
-  // Keyboard
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      if (state === 'playing') pause();
-      else if (state === 'paused') resume();
-      return;
-    }
-    if (state !== 'playing') return;
-    const k = e.key.toLowerCase();
-    if (k === 'arrowup' || k === 'w') { e.preventDefault(); turn({ x: 0, y: -1 }); }
-    else if (k === 'arrowdown' || k === 's') { e.preventDefault(); turn({ x: 0, y: 1 }); }
-    else if (k === 'arrowleft' || k === 'a') { e.preventDefault(); turn({ x: -1, y: 0 }); }
-    else if (k === 'arrowright' || k === 'd') { e.preventDefault(); turn({ x: 1, y: 0 }); }
-  });
-
-  // ============================================================
-  // PARTICLES
-  // ============================================================
-  function burst(cx, cy, color, count = 16, speedMul = 1) {
-    if (!save.particles) return;
-    if (particles.length > CONFIG.particleMax) return;
-    const px = offX + cx * cell + cell / 2;
-    const py = offY + cy * cell + cell / 2;
-    for (let i = 0; i < count; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const sp = rand(1, 4.5) * speedMul;
-      particles.push({
-        x: px, y: py,
-        vx: Math.cos(a) * sp,
-        vy: Math.sin(a) * sp,
-        life: 1,
-        decay: rand(0.012, 0.03),
-        color,
-        size: rand(1.5, 3.5),
-      });
-    }
-  }
-
-  function updateParticles(dt) {
-    const step = clamp(dt / 16, 0.5, 2);
-    for (let i = particles.length - 1; i >= 0; i--) {
-      const p = particles[i];
-      p.x += p.vx * step;
-      p.y += p.vy * step;
-      p.vx *= 0.94;
-      p.vy *= 0.94;
-      p.life -= p.decay * step;
-      if (p.life <= 0) particles.splice(i, 1);
-    }
-  }
-
-  // ============================================================
-  // STEP (game logic tick)
-  // ============================================================
-  function step() {
-    if (state !== 'playing') return;
-
-    // Direction change
-    if (!(nextDir.x === -dir.x && nextDir.y === -dir.y)) {
-      dir = nextDir;
-    }
-
-    const nx = player.x + dir.x;
-    const ny = player.y + dir.y;
-
-    // Wall collision
-    if (nx < 0 || nx >= cols || ny < 0 || ny >= rows) {
-      return die('wall');
-    }
-    // Own trail collision
-    if (trailSet.has(nx + ',' + ny)) {
-      return die('self');
-    }
-    // Enemy trail collision
-    for (const en of enemies) {
-      if (en.trail.has(nx + ',' + ny)) {
-        return die('enemy');
-      }
-    }
-
-    player.x = nx;
-    player.y = ny;
-    trail.push({ x: nx, y: ny });
-    trailSet.add(nx + ',' + ny);
-
-    // Prune trail? Classic: no. But let's allow moderate length for playability
-    // Actually keep classic: trail stays. But cap at, say, 9999 cells for memory.
-    if (trail.length > 4000) {
-      // Extremely long game. Fallback.
-      const removed = trail.shift();
-      // Do NOT remove from trailSet — keeps collision. Playable but heavy. Accept.
-    }
-
-    // Orb collection
-    for (let i = orbs.length - 1; i >= 0; i--) {
-      const o = orbs[i];
-      if (o.x === nx && o.y === ny) {
-        orbs.splice(i, 1);
-        collectOrb(o);
-        spawnOrb();
-      }
-    }
-
-    // Enemy movement
-    for (let ei = enemies.length - 1; ei >= 0; ei--) {
-      const en = enemies[ei];
-      en.acc += 1;
-      const need = 1 / en.speed;
-      while (en.acc >= need) {
-        en.acc -= need;
-        moveEnemy(en, ei);
-        if (state !== 'playing') return;
-        if (!enemies[ei]) break;
-      }
-    }
-
-    // Occasional enemy spawn
-    if (enemies.length < CONFIG.maxEnemies && Math.random() < 0.0018 * (1 + level * 0.15)) {
-      spawnEnemy();
-    }
-
-    // Combo timer
-    if (comboTimer > 0) {
-      comboTimer -= tickMs;
-      if (comboTimer <= 0) {
-        comboCount = 0;
-        comboTimer = 0;
-      }
-    }
-
-    // Time since last orb — spawn more if too quiet
-    timeSinceLastOrb += tickMs;
-    if (timeSinceLastOrb > 6000 && orbs.length < 4) {
-      spawnOrb();
-      timeSinceLastOrb = 0;
-    }
-  }
-
-  function moveEnemy(en, ei) {
-    // AI: choose direction avoiding walls, own trail, player trail, other enemies' trails
-    const options = [];
-    const dirs = [
-      { x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }
-    ];
-
-    const isBlocked = (x, y) => {
-      if (x < 0 || x >= cols || y < 0 || y >= rows) return true;
-      const k = x + ',' + y;
-      if (trailSet.has(k)) return true;
-      if (en.trail.has(k)) return true;
-      for (const other of enemies) {
-        if (other === en) continue;
-        if (other.trail.has(k)) return true;
-      }
-      return false;
-    };
-
-    for (const d of dirs) {
-      if (d.x === -en.dx && d.y === -en.dy) continue; // no 180
-      const cx = en.x + d.x;
-      const cy = en.y + d.y;
-      if (isBlocked(cx, cy)) continue;
-
-      // Compute weight
-      let w = 1;
-      // Prefer toward player
-      const curDist = Math.abs(en.x - player.x) + Math.abs(en.y - player.y);
-      const newDist = Math.abs(cx - player.x) + Math.abs(cy - player.y);
-      if (newDist < curDist) w += 2.2;
-      // Prefer orbs
-      if (orbs.some(o => o.x === cx && o.y === cy)) w += 1.5;
-      // Avoid getting too close to own trail (only the head area)
-      // Add randomness
-      w += Math.random() * 0.9;
-      options.push({ d, w, cx, cy });
-    }
-
-    let chosen;
-    if (options.length === 0) {
-      // Enemy dies
-      killEnemy(en, ei, false);
-      return;
-    } else {
-      const total = options.reduce((s, o) => s + o.w, 0);
-      let r = Math.random() * total;
-      for (const o of options) {
-        r -= o.w;
-        if (r <= 0) { chosen = o; break; }
-      }
-      if (!chosen) chosen = options[0];
-    }
-
-    en.dx = chosen.d.x;
-    en.dy = chosen.d.y;
-    en.x = chosen.cx;
-    en.y = chosen.cy;
-    en.trail.add(en.x + ',' + en.y);
-    en.trailArr.push({ x: en.x, y: en.y });
-
-    // Collision with player trail → enemy dies
-    if (trailSet.has(en.x + ',' + en.y)) {
-      killEnemy(en, ei, true);
-      return;
-    }
-    // Enemy hits player
-    if (en.x === player.x && en.y === player.y) {
-      die('enemy-contact');
-      return;
-    }
-    // Enemy hits wall — already handled by isBlocked above (won't choose)
-  }
-
-  function killEnemy(en, index, byPlayer) {
-    burst(en.x, en.y, en.color, 22, 1.3);
-    Audio.enemyKill();
-    vibrate(30);
-    enemies.splice(index, 1);
-
-    if (byPlayer) {
-      const gain = 25 * (1 + comboCount * 0.2);
-      addScore(Math.round(gain));
-      comboCount++;
-      comboTimer = 2500;
-    } else {
-      addScore(15);
-    }
-  }
-
-  // ============================================================
-  // SCORE
-  // ============================================================
-  function addScore(n) {
-    score += n;
-    updateHUD();
-    const el = $('#scoreDisplay');
-    el.classList.add('bump');
-    setTimeout(() => el.classList.remove('bump'), 160);
-  }
-
-  function collectOrb(o) {
-    const base = 10;
-    const mult = 1 + comboCount * 0.15;
-    addScore(Math.round(base * mult));
-    comboCount++;
-    comboTimer = 2200;
-    timeSinceLastOrb = 0;
-
-    burst(o.x, o.y, '#00e5ff', 14, 1.1);
-    Audio.orb();
-    vibrate(12);
-
-    // Speed up
-    tickMs = Math.max(CONFIG.minTickMs, tickMs - CONFIG.speedUpPerOrb);
-
-    // Level progression (every 100 points)
-    const newLevel = 1 + Math.floor(score / 100);
-    if (newLevel > level) {
-      level = newLevel;
-      onLevelUp();
-    }
-  }
-
-  function onLevelUp() {
-    updateHUD();
-    // Spawn extra enemy at higher levels
-    if (level % 3 === 0 && enemies.length < CONFIG.maxEnemies) {
-      spawnEnemy();
-    }
-    // Flash effect
-    flash(0.35);
-  }
-
-  function updateHUD() {
-    $('#scoreDisplay').textContent = score;
-    $('#bestDisplay').textContent = save.best;
-    $('#levelTag').textContent = 'УРОВЕНЬ ' + level;
-
-    // Speed meter
-    const speedPct = clamp(1 - (tickMs - CONFIG.minTickMs) / (CONFIG.baseTickMs - CONFIG.minTickMs), 0, 1);
-    $('#speedFill').style.width = (10 + speedPct * 90) + '%';
-  }
-
-  // ============================================================
-  // DEATH / GAME OVER
-  // ============================================================
-  function die(reason) {
-    if (state === 'over') return;
-    state = 'over';
-
-    burst(player.x, player.y, '#ff2b5e', 30, 1.6);
-    burst(player.x, player.y, '#ffffff', 15, 1.2);
-    Audio.crash();
-    vibrate([40, 30, 80]);
-    screenShake = 22;
-
-    // Save stats
-    save.gamesPlayed += 1;
-    if (level > save.highestLevel) save.highestLevel = level;
-    const isRecord = score > save.best;
-    if (isRecord) save.best = score;
-    persistSave();
-
-    // Delay game-over screen
-    setTimeout(() => {
-      showGameOver(isRecord);
-    }, 700);
-  }
-
-  function showGameOver(isRecord) {
-    $('#finalScore').textContent = score;
-    $('#finalBest').textContent = save.best;
-    const bestBox = $('#finalBestBox');
-    if (isRecord) bestBox.classList.add('new-record');
-    else bestBox.classList.remove('new-record');
-
-    $('#gameover').classList.add('active');
-    if (isRecord) {
-      setTimeout(() => Audio.newRecord(), 250);
-    } else {
-      Audio.gameover();
-    }
-  }
-
-  // ============================================================
-  // COUNTDOWN
-  // ============================================================
-  function beginCountdown() {
-    state = 'countdown';
-    countdownIdx = 0;
-    countdownTimer = 0;
-    Audio.countdown();
-    showCountdownStep();
-  }
-
-  function showCountdownStep() {
-    const el = $('#countdown');
-    const num = CONFIG.countdownSteps[countdownIdx];
-    el.innerHTML = `<div class="countdown-num">${num}</div>`;
-    el.classList.add('active');
-    // Re-trigger animation
-    const child = el.firstElementChild;
-    if (child) {
-      child.style.animation = 'none';
-      void child.offsetWidth;
-      child.style.animation = '';
-    }
-  }
-
-  function updateCountdown(dt) {
-    countdownTimer += dt;
-    if (countdownTimer >= CONFIG.countdownDuration) {
-      countdownTimer = 0;
-      countdownIdx++;
-      if (countdownIdx < CONFIG.countdownSteps.length) {
-        Audio.countdown(countdownIdx === CONFIG.countdownSteps.length - 1);
-        showCountdownStep();
-      } else {
-        $('#countdown').classList.remove('active');
-        state = 'playing';
-        Audio.start();
-      }
-    }
-  }
-
-  // ============================================================
-  // RENDER
-  // ============================================================
-  function render(now) {
-    ctx.clearRect(0, 0, W, H);
-
-    // Screen shake
-    let shakeX = 0, shakeY = 0;
-    if (screenShake > 0.5) {
-      shakeX = rand(-screenShake, screenShake);
-      shakeY = rand(-screenShake, screenShake);
-      screenShake *= 0.85;
-    }
-    ctx.save();
-    ctx.translate(shakeX, shakeY);
-
-    drawField();
-    drawStars(now);
-    drawTrails(now);
-    drawOrbs(now);
-    drawEnemies(now);
-    drawPlayer(now);
-    drawParticles();
-
-    ctx.restore();
-
-    // Field border glow (outside shake so it stays crisp)
-    drawBorder(now);
-  }
-
-  function drawField() {
-    // Field background
-    ctx.fillStyle = 'rgba(0, 8, 20, 0.85)';
-    ctx.fillRect(offX, offY, fieldW, fieldH);
-
-    // Inner grid
-    ctx.strokeStyle = 'rgba(0, 180, 220, 0.14)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (let x = 0; x <= cols; x++) {
-      ctx.moveTo(offX + x * cell + 0.5, offY);
-      ctx.lineTo(offX + x * cell + 0.5, offY + fieldH);
-    }
-    for (let y = 0; y <= rows; y++) {
-      ctx.moveTo(offX, offY + y * cell + 0.5);
-      ctx.lineTo(offX + fieldW, offY + y * cell + 0.5);
-    }
-    ctx.stroke();
-
-    // Subtle inner gradient
-    const g = ctx.createLinearGradient(offX, offY, offX, offY + fieldH);
-    g.addColorStop(0, 'rgba(0, 229, 255, 0.05)');
-    g.addColorStop(0.5, 'rgba(0, 229, 255, 0.01)');
-    g.addColorStop(1, 'rgba(0, 229, 255, 0.05)');
-    ctx.fillStyle = g;
-    ctx.fillRect(offX, offY, fieldW, fieldH);
-  }
-
-  function drawBorder(now) {
-    const t = now / 1000;
-    const pulse = 0.6 + 0.4 * Math.sin(t * 2);
-    ctx.save();
-    ctx.strokeStyle = `rgba(0, 229, 255, ${0.55 * pulse})`;
-    ctx.lineWidth = 2;
-    ctx.shadowBlur = 20 * pulse;
-    ctx.shadowColor = '#00e5ff';
-    ctx.strokeRect(offX - 1, offY - 1, fieldW + 2, fieldH + 2);
-    ctx.restore();
-  }
-
-  function drawStars(now) {
-    const t = now / 1000;
-    for (const s of stars) {
-      const twinkle = 0.3 + 0.7 * Math.sin(t * 1.5 + s.phase);
-      ctx.fillStyle = `rgba(0, 229, 255, ${0.18 * twinkle})`;
-      ctx.fillRect(offX + s.x, offY + s.y, s.size, s.size);
-    }
-  }
-
-  function drawTrails(now) {
-    // Player trail — cyan gradient
-    const len = trail.length;
-    for (let i = 0; i < len; i++) {
-      const seg = trail[i];
-      const t = i / Math.max(1, len - 1);
-      const alpha = lerp(0.55, 1.0, t);
-      const blur = lerp(6, 18, t);
-      drawCell(seg.x, seg.y, `rgba(0, 229, 255, ${alpha})`, blur, '#00e5ff');
-    }
-
-    // Enemy trails
-    for (const en of enemies) {
-      for (let i = 0; i < en.trailArr.length; i++) {
-        const seg = en.trailArr[i];
-        const t = i / Math.max(1, en.trailArr.length - 1);
-        const alpha = lerp(0.4, 0.85, t);
-        drawCell(seg.x, seg.y, hexToRgba(en.color, alpha), 10, en.color);
-      }
-    }
-  }
-
-  function drawCell(cx, cy, fill, blur, glowColor) {
-    const x = offX + cx * cell + 1;
-    const y = offY + cy * cell + 1;
-    const s = cell - 2;
-
-    ctx.save();
-    ctx.shadowBlur = blur;
-    ctx.shadowColor = glowColor;
-    ctx.fillStyle = fill;
-    ctx.fillRect(x, y, s, s);
-
-    // Inner core highlight
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-    ctx.fillRect(x + s * 0.3, y + s * 0.3, s * 0.4, s * 0.4);
-    ctx.restore();
-  }
-
-  function drawOrbs(now) {
-    const t = now / 1000;
-    for (const o of orbs) {
-      const pulse = 0.7 + 0.3 * Math.sin(t * 4 + o.phase);
-      const cx = offX + o.x * cell + cell / 2;
-      const cy = offY + o.y * cell + cell / 2;
-      const r = (cell / 2 - 3) * pulse;
-
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(t * 2 + o.phase);
-
-      // Outer glow diamond
-      ctx.shadowBlur = 22;
-      ctx.shadowColor = '#00e5ff';
-      ctx.fillStyle = '#00e5ff';
-      ctx.beginPath();
-      ctx.moveTo(0, -r);
-      ctx.lineTo(r, 0);
-      ctx.lineTo(0, r);
-      ctx.lineTo(-r, 0);
-      ctx.closePath();
-      ctx.fill();
-
-      // Inner white
-      ctx.shadowBlur = 12;
-      ctx.shadowColor = '#fff';
-      ctx.fillStyle = '#ffffff';
-      const r2 = r * 0.5;
-      ctx.beginPath();
-      ctx.moveTo(0, -r2);
-      ctx.lineTo(r2, 0);
-      ctx.lineTo(0, r2);
-      ctx.lineTo(-r2, 0);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.restore();
-    }
-  }
-
-  function drawEnemies(now) {
-    const t = now / 1000;
-    for (const en of enemies) {
-      const px = offX + en.x * cell;
-      const py = offY + en.y * cell;
-
-      // Body glow
-      ctx.save();
-      ctx.shadowBlur = 20;
-      ctx.shadowColor = en.color;
-      ctx.fillStyle = en.color;
-      ctx.fillRect(px + 2, py + 2, cell - 4, cell - 4);
-
-      // White headlight direction indicator
-      const cxx = px + cell / 2 + en.dx * cell * 0.22;
-      const cyy = py + cell / 2 + en.dy * cell * 0.22;
-      ctx.shadowBlur = 16;
-      ctx.shadowColor = '#ffffff';
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(cxx, cyy, cell * 0.14, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      // Pulsing aura
-      const auraR = cell * (0.9 + 0.15 * Math.sin(t * 3 + en.phase));
-      ctx.save();
-      ctx.globalAlpha = 0.25;
-      ctx.strokeStyle = en.color;
-      ctx.lineWidth = 1.5;
-      ctx.shadowBlur = 14;
-      ctx.shadowColor = en.color;
-      ctx.beginPath();
-      ctx.arc(px + cell / 2, py + cell / 2, auraR / 2, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-    }
-  }
-
-  function drawPlayer(now) {
-    if (state === 'over') return;
-    const t = now / 1000;
-    const px = offX + player.x * cell;
-    const py = offY + player.y * cell;
-
-    // Outer aura
-    ctx.save();
-    ctx.globalAlpha = 0.4 + 0.25 * Math.sin(t * 5);
-    ctx.shadowBlur = 30;
-    ctx.shadowColor = '#00e5ff';
-    ctx.fillStyle = '#00e5ff';
-    ctx.beginPath();
-    ctx.arc(px + cell / 2, py + cell / 2, cell * 0.75, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // Body
-    ctx.save();
-    ctx.shadowBlur = 25;
-    ctx.shadowColor = '#00e5ff';
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(px + 2, py + 2, cell - 4, cell - 4);
-
-    // Headlight
-    const cxx = px + cell / 2 + dir.x * cell * 0.24;
-    const cyy = py + cell / 2 + dir.y * cell * 0.24;
-    ctx.shadowBlur = 18;
-    ctx.shadowColor = '#00e5ff';
-    ctx.fillStyle = '#00e5ff';
-    ctx.beginPath();
-    ctx.arc(cxx, cyy, cell * 0.16, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  function drawParticles() {
-    ctx.save();
-    for (const p of particles) {
-      const a = clamp(p.life, 0, 1);
-      ctx.globalAlpha = a;
-      ctx.fillStyle = p.color;
-      ctx.shadowBlur = 12;
-      ctx.shadowColor = p.color;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size * a + 0.6, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-    ctx.globalAlpha = 1;
-    ctx.shadowBlur = 0;
-  }
-
-  function hexToRgba(hex, a) {
-    // supports #rgb and #rrggbb
-    let h = hex.replace('#', '');
-    if (h.length === 3) h = h.split('').map(c => c + c).join('');
-    const r = parseInt(h.substring(0, 2), 16);
-    const g = parseInt(h.substring(2, 4), 16);
-    const b = parseInt(h.substring(4, 6), 16);
-    return `rgba(${r}, ${g}, ${b}, ${a})`;
-  }
-
-  // ============================================================
-  // LOOP
-  // ============================================================
-  function loop(t) {
-    if (state === 'idle' || state === 'over') {
-      rafId = null;
-      return;
-    }
-
-    const dt = Math.min(50, t - lastTime || 16);
-    lastTime = t;
-
-    if (state === 'countdown') {
-      updateCountdown(dt);
-      render(t);
-      updateParticles(dt);
-      rafId = requestAnimationFrame(loop);
-      return;
-    }
-
-    if (state === 'playing') {
-      acc += dt;
-      let steps = 0;
-      while (acc >= tickMs && state === 'playing' && steps < 4) {
-        acc -= tickMs;
-        step();
-        steps++;
-      }
-      if (steps >= 4) acc = 0; // avoid spiral of death
-    }
-
-    updateParticles(dt);
-    render(t);
-
-    if (state === 'paused') {
-      // still draw, but dim overlay handled by CSS? We'll just render and not step
-      rafId = requestAnimationFrame(loop);
-      return;
-    }
-
-    if (state !== 'over') {
-      rafId = requestAnimationFrame(loop);
-    } else {
-      rafId = null;
-      // final frame
-      render(t);
-    }
-  }
-
-  // ============================================================
-  // PUBLIC
-  // ============================================================
-  function start() {
-    resize();
-    reset();
-    canvas.classList.add('active');
-    $('#hud').classList.add('active');
-    $('#touchControls').classList.add('active');
-    $('#pauseBtn').classList.add('active');
-
-    state = 'countdown';
-    lastTime = performance.now();
-    beginCountdown();
-    if (rafId) cancelAnimationFrame(rafId);
-    rafId = requestAnimationFrame(loop);
-  }
-
-  function pause() {
-    if (state !== 'playing') return;
-    state = 'paused';
-    $('#pauseBtn').textContent = '▶';
-    Audio.uiBack();
-  }
-
-  function resume() {
-    if (state !== 'paused') return;
-    state = 'playing';
-    $('#pauseBtn').textContent = '⏸';
-    lastTime = performance.now();
-    acc = 0;
-    Audio.ui();
-  }
-
-  function togglePause() {
-    if (state === 'playing') pause();
-    else if (state === 'paused') resume();
-  }
-
-  function exitToMenu() {
-    state = 'idle';
-    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-    canvas.classList.remove('active');
-    $('#hud').classList.remove('active');
-    $('#touchControls').classList.remove('active');
-    $('#pauseBtn').classList.remove('active');
-  }
-
-  function destroy() {
-    exitToMenu();
-    ctx.clearRect(0, 0, W, H);
-  }
-
-  // resize listeners
-  window.addEventListener('resize', () => {
-    resize();
-  });
-  window.addEventListener('orientationchange', () => {
-    setTimeout(resize, 200);
-  });
-
-  // expose
-  return {
-    start,
-    pause,
-    resume,
-    togglePause,
-    exitToMenu,
-    destroy,
-    getState: () => state,
-    resize,
-  };
-})();
-
-// ============================================================
-// UI CONTROLLER
-// ============================================================
-const UI = (() => {
-  const menu = $('#menu');
-  const settings = $('#settings');
-  const howto = $('#howto');
-  const gameover = $('#gameover');
-  const loader = $('#loader');
-  const flashEl = $('#flash');
-  const pauseBtn = $('#pauseBtn');
-
-  function showMenu() {
-    menu.classList.add('active');
-    settings.classList.remove('active');
-    howto.classList.remove('active');
-    gameover.classList.remove('active');
-    refreshStats();
-  }
-
-  function hideMenu() {
-    menu.classList.remove('active');
-  }
-
-  function refreshStats() {
-    $('#menuBest').textContent = save.best;
-    $('#menuGames').textContent = save.gamesPlayed;
-    $('#menuLevel').textContent = save.highestLevel;
-  }
-
-  // Button sounds
-  function wireButtons() {
-    $$('.menu-btn, .close-btn').forEach(btn => {
-      btn.addEventListener('click', () => Audio.ui());
-    });
-  }
-
-  function flash(intensity = 0.5) {
-    flashEl.style.opacity = intensity;
-    setTimeout(() => { flashEl.style.opacity = 0; }, 150);
-  }
-
-  return { showMenu, hideMenu, refreshStats, flash, wireButtons };
-})();
-
-// ============================================================
-// WIRE UP EVERYTHING
-// ============================================================
-function boot() {
-  // Loader fade
-  setTimeout(() => {
-    $('#loader').classList.add('fade-out');
-    UI.showMenu();
-    setTimeout(() => {
-      $('#loader').classList.add('hidden');
-    }, 900);
-  }, 1600);
-
-  Background.start();
-  UI.wireButtons();
-
-  // MENU BUTTONS
-  $('#playBtn').addEventListener('click', () => {
-    UI.hideMenu();
-    setTimeout(() => Game.start(), 250);
-  });
-
-  $('#howtoBtn').addEventListener('click', () => {
-    $('#howto').classList.add('active');
-  });
-
-  $('#settingsBtn').addEventListener('click', () => {
-    $('#settings').classList.add('active');
-    refreshSettingsUI();
-  });
-
-  // CLOSE PANELS
-  $('#howtoClose').addEventListener('click', () => {
-    $('#howto').classList.remove('active');
-  });
-  $('#settingsClose').addEventListener('click', () => {
-    $('#settings').classList.remove('active');
-  });
-
-  // GAME OVER BUTTONS
-  $('#retryBtn').addEventListener('click', () => {
-    $('#gameover').classList.remove('active');
-    setTimeout(() => Game.start(), 200);
-  });
-
-  $('#menuBtn').addEventListener('click', () => {
-    $('#gameover').classList.remove('active');
-    Game.exitToMenu();
-    setTimeout(() => UI.showMenu(), 200);
-  });
-
-  // PAUSE
-  pauseBtn.addEventListener('click', () => {
-    const st = Game.getState();
-    if (st === 'playing' || st === 'paused') Game.togglePause();
-  });
-
-  // SETTINGS TOGGLES
-  const soundToggle = $('#soundToggle');
-  const vibrateToggle = $('#vibrateToggle');
-  const particlesToggle = $('#particlesToggle');
-
-  soundToggle.addEventListener('click', () => {
-    save.sound = !save.sound;
-    soundToggle.classList.toggle('on', save.sound);
-    Audio.setEnabled(save.sound);
-    if (save.sound) Audio.ui();
-    persistSave();
-  });
-
-  vibrateToggle.addEventListener('click', () => {
-    save.vibrate = !save.vibrate;
-    vibrateToggle.classList.toggle('on', save.vibrate);
-    if (save.vibrate) vibrate(20);
-    persistSave();
-  });
-
-  particlesToggle.addEventListener('click', () => {
-    save.particles = !save.particles;
-    particlesToggle.classList.toggle('on', save.particles);
-    Audio.ui();
-    persistSave();
-  });
-
-  // SETTINGS SLIDERS
-  setupSlider('diffSlider', 'diffFill', 'diffThumb', 'diffValue',
-    ['ЛЕГКО', 'НОРМ', 'СЛОЖНО'],
-    () => save.difficulty,
-    (v) => { save.difficulty = v; persistSave(); }
-  );
-
-  setupSlider('sensSlider', 'sensFill', 'sensThumb', 'sensValue',
-    ['НИЗК', 'СРЕД', 'ВЫСОК'],
-    () => save.sensitivity,
-    (v) => { save.sensitivity = v; persistSave(); }
-  );
-
-  function setupSlider(sliderId, fillId, thumbId, valueId, labels, get, set) {
-    const slider = document.getElementById(sliderId);
-    const fill = document.getElementById(fillId);
-    const thumb = document.getElementById(thumbId);
-    const value = document.getElementById(valueId);
-
-    function refresh() {
-      const v = get();
-      const pct = (v / (labels.length - 1)) * 100;
-      fill.style.width = pct + '%';
-      thumb.style.left = pct + '%';
-      value.textContent = labels[v];
-    }
-
-    function setFromEvent(clientX) {
-      const rect = slider.getBoundingClientRect();
-      const pct = clamp((clientX - rect.left) / rect.width, 0, 1);
-      const idx = Math.round(pct * (labels.length - 1));
-      if (idx !== get()) {
-        set(idx);
-        Audio.ui();
-      }
-      refresh();
-    }
-
-    let dragging = false;
-
-    slider.addEventListener('mousedown', (e) => {
-      dragging = true;
-      setFromEvent(e.clientX);
-    });
-    window.addEventListener('mousemove', (e) => {
-      if (dragging) setFromEvent(e.clientX);
-    });
-    window.addEventListener('mouseup', () => { dragging = false; });
-
-    slider.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      dragging = true;
-      setFromEvent(e.touches[0].clientX);
-    }, { passive: false });
-    slider.addEventListener('touchmove', (e) => {
-      e.preventDefault();
-      if (dragging) setFromEvent(e.touches[0].clientX);
-    }, { passive: false });
-    slider.addEventListener('touchend', () => { dragging = false; });
-
-    refresh();
-    return refresh;
-  }
-
-  function refreshSettingsUI() {
-    soundToggle.classList.toggle('on', save.sound);
-    vibrateToggle.classList.toggle('on', save.vibrate);
-    particlesToggle.classList.toggle('on', save.particles);
-    // Re-init sliders
-    document.getElementById('diffFill').style.width = (save.difficulty / 2 * 100) + '%';
-    document.getElementById('diffThumb').style.left = (save.difficulty / 2 * 100) + '%';
-    document.getElementById('diffValue').textContent = ['ЛЕГКО', 'НОРМ', 'СЛОЖНО'][save.difficulty];
-    document.getElementById('sensFill').style.width = (save.sensitivity / 2 * 100) + '%';
-    document.getElementById('sensThumb').style.left = (save.sensitivity / 2 * 100) + '%';
-    document.getElementById('sensValue').textContent = ['НИЗК', 'СРЕД', 'ВЫСОК'][save.sensitivity];
-  }
-
-  // INITIAL SETTINGS SYNC
-  Audio.setEnabled(save.sound);
-
-  // Prevent double-tap zoom
-  document.addEventListener('gesturestart', (e) => e.preventDefault());
-  let lastTouchEnd = 0;
-  document.addEventListener('touchend', (e) => {
-    const now = Date.now();
-    if (now - lastTouchEnd <= 300) e.preventDefault();
-    lastTouchEnd = now;
-  }, { passive: false });
-
-  // Prevent context menu
-  document.addEventListener('contextmenu', (e) => e.preventDefault());
-
-  // Prevent iOS rubber-band
-  document.body.addEventListener('touchmove', (e) => {
-    if (e.target === document.body || e.target === document.documentElement) {
-      e.preventDefault();
-    }
-  }, { passive: false });
-
-  // Orientation change → re-show menu or resize game
-  window.addEventListener('orientationchange', () => {
-    setTimeout(() => {
-      Background.start();
-      Game.resize();
-    }, 300);
-  });
-
-  // First interaction → init audio
-  const initAudioOnce = () => {
-    Audio.init();
-    Audio.resume();
-    document.removeEventListener('touchstart', initAudioOnce);
-    document.removeEventListener('mousedown', initAudioOnce);
-  };
-  document.addEventListener('touchstart', initAudioOnce, { passive: true });
-  document.addEventListener('mousedown', initAudioOnce);
-}
-
-// ============================================================
-// GO!
-// ============================================================
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', boot);
-} else {
-  boot();
-}
+/* ============================================================
+   END OF PART 1
+   Продолжение следует в Части 2: GAME ENGINE, ARENAS,
+   ENEMIES, BOSSES, ABILITIES, UI CONTROLLER, BOOT.
+   ============================================================ */
+
+// Заглушка, чтобы избежать ошибок при отсутствии продолжения:
+window.__TRON_READY_FOR_PART_2__ = true;
 
 })();
 </script>
 </body>
-</html>
+     </html>
