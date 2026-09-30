@@ -5654,3 +5654,878 @@ console.log('[TRON] Part 2 loaded: Game engine ready.');
      Часть 3: UI CONTROLLER, MENU LOGIC, MODE/ARENA SELECT,
      LEADERBOARD, SETTINGS, BOOT
      ============================================================ -->
+<!-- ============================================================
+     PART 3: UI CONTROLLER, MENUS, BOOT — FINAL LAYER
+     ============================================================ -->
+<script>
+(() => {
+'use strict';
+
+if (!window.TRON) {
+  console.error('[TRON] Part 1 not loaded!');
+  return;
+}
+if (!window.TRON.Game) {
+  console.error('[TRON] Part 2 not loaded!');
+  return;
+}
+
+const T = window.TRON;
+
+// ============================================================
+// ССЫЛКИ ИЗ ЧАСТИ 1
+// ============================================================
+const {
+  clamp, rand, randInt, pick, now, formatNumber, formatTime,
+  DIRS, MODES, ARENAS, ENEMY_TYPES, LEVELS,
+  $, $$, Audio, vibrate,
+} = T;
+
+const getSave = () => T.getSave();
+const persistSave = () => T.persistSave();
+const Game = T.Game;
+
+// ============================================================
+// LOADING TIPS
+// ============================================================
+const LOADING_TIPS = [
+  'ЗАГРУЗКА ЦИФРОВОЙ СЕТИ...',
+  'ИНИЦИАЛИЗАЦИЯ LIGHT CYCLE...',
+  'КАЛИБРОВКА СЕНСОРОВ...',
+  'СИНХРОНИЗАЦИЯ С ENCOM...',
+  'ЗАГРУЗКА ПРОТОКОЛОВ БОЯ...',
+  'ПРОВЕРКА ЦЕЛОСТНОСТИ ПРОГРАММЫ...',
+  'ПОДКЛЮЧЕНИЕ К АРЕНЕ...',
+  'ВСЕ СИСТЕМЫ ГОТОВЫ.',
+];
+
+// ============================================================
+// TOAST SYSTEM
+// ============================================================
+const Toast = (() => {
+  let timer = null;
+  const el = $('#toast');
+
+  function show(text, type = 'default', duration = 2200) {
+    if (!el) return;
+    el.textContent = text;
+    el.className = '';
+    if (type === 'gold') el.classList.add('gold');
+    else if (type === 'red') el.classList.add('red');
+    el.classList.add('active');
+
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => {
+      el.classList.remove('active');
+    }, duration);
+  }
+
+  return { show };
+})();
+
+// ============================================================
+// SCREEN MANAGER
+// ============================================================
+const Screens = (() => {
+  const screens = {
+    mainMenu: $('#mainMenu'),
+    modeSelect: $('#modeSelect'),
+    arenaSelect: $('#arenaSelect'),
+    leaderboard: $('#leaderboard'),
+    settings: $('#settings'),
+    howto: $('#howto'),
+  };
+
+  let current = null;
+  let pendingArenaMode = null; // режим, для которого выбираем арену
+
+  function show(name) {
+    Object.values(screens).forEach(s => {
+      if (s) s.classList.remove('active');
+    });
+    if (screens[name]) {
+      screens[name].classList.add('active');
+      current = name;
+    }
+  }
+
+  function hideAll() {
+    Object.values(screens).forEach(s => {
+      if (s) s.classList.remove('active');
+    });
+    current = null;
+  }
+
+  function getCurrent() { return current; }
+
+  function setPendingArenaMode(modeId) { pendingArenaMode = modeId; }
+  function getPendingArenaMode() { return pendingArenaMode; }
+  function clearPendingArenaMode() { pendingArenaMode = null; }
+
+  return { show, hideAll, getCurrent, setPendingArenaMode, getPendingArenaMode, clearPendingArenaMode };
+})();
+
+// ============================================================
+// MODE CARDS RENDERER
+// ============================================================
+const ModeCards = (() => {
+  const grid = $('#modesGrid');
+
+  function render() {
+    if (!grid) return;
+    const save = getSave();
+    grid.innerHTML = '';
+
+    Object.values(MODES).forEach((mode, idx) => {
+      const unlocked = save.unlockedModes.includes(mode.id);
+      const card = document.createElement('button');
+      card.className = 'mode-card' + (unlocked ? '' : ' locked');
+      card.style.animationDelay = (idx * 60) + 'ms';
+      card.style.setProperty('--card-accent', mode.accentGlow || 'var(--cyan-glow)');
+
+      const chips = (mode.chips || []).map(c =>
+        `<span class="mode-chip ${c.cls || ''}">${c.text}</span>`
+      ).join('');
+
+      const best = save.bestByMode[mode.id] || 0;
+      const bestHTML = best > 0
+        ? `<div class="mode-highscore">★ РЕКОРД: ${formatNumber(best)}</div>`
+        : '';
+
+      card.innerHTML = `
+        <div class="mode-icon">${mode.icon}</div>
+        <div class="mode-name">${mode.name}</div>
+        <div class="mode-desc">${mode.desc}</div>
+        <div class="mode-meta">${chips}</div>
+        ${bestHTML}
+      `;
+
+      if (unlocked) {
+        card.addEventListener('click', () => {
+          Audio.ui();
+          Screens.setPendingArenaMode(mode.id);
+          Screens.show('arenaSelect');
+          ArenaCards.render();
+        });
+      } else {
+        card.addEventListener('click', () => {
+          Audio.uiError();
+          Toast.show(`ОТКРОЕТСЯ НА УРОВНЕ ${mode.unlockLevel}`, 'red');
+        });
+      }
+
+      grid.appendChild(card);
+    });
+  }
+
+  return { render };
+})();
+
+// ============================================================
+// ARENA CARDS RENDERER
+// ============================================================
+const ArenaCards = (() => {
+  const grid = $('#arenasGrid');
+
+  function render() {
+    if (!grid) return;
+    const save = getSave();
+    grid.innerHTML = '';
+
+    Object.values(ARENAS).forEach((arena, idx) => {
+      const unlocked = save.unlockedArenas.includes(arena.id);
+      const card = document.createElement('button');
+      card.className = 'arena-card' + (unlocked ? '' : ' locked');
+      card.style.animationDelay = (idx * 60) + 'ms';
+      card.style.setProperty('--arena-accent', arena.accent);
+
+      const features = (arena.features || []).map(f => {
+        const labels = {
+          walls: 'СТЕНЫ',
+          portals: 'ПОРТАЛЫ',
+          movingWalls: 'ДВИЖЕНИЕ',
+          energyBoost: 'ЭНЕРГИЯ',
+          traps: 'ЛОВУШКИ',
+          pillars: 'КОЛОННЫ',
+          fog: 'ТУМАН',
+        };
+        return `<span class="mode-chip">${labels[f] || f}</span>`;
+      }).join('');
+
+      card.innerHTML = `
+        <div class="arena-preview">
+          <span style="position: relative; z-index: 1;">${arena.icon}</span>
+        </div>
+        <div class="arena-body">
+          <div class="arena-name">${arena.name}</div>
+          <div class="arena-desc">${arena.desc}</div>
+          <div class="arena-meta">${features}</div>
+        </div>
+      `;
+
+      if (unlocked) {
+        card.addEventListener('click', () => {
+          Audio.ui();
+          const modeId = Screens.getPendingArenaMode() || 'classic';
+          Screens.clearPendingArenaMode();
+          Screens.hideAll();
+          setTimeout(() => {
+            Game.start(modeId, arena.id);
+          }, 220);
+        });
+      } else {
+        card.addEventListener('click', () => {
+          Audio.uiError();
+          Toast.show(`ОТКРОЕТСЯ НА УРОВНЕ ${arena.unlockLevel}`, 'red');
+        });
+      }
+
+      grid.appendChild(card);
+    });
+  }
+
+  return { render };
+})();
+
+// ============================================================
+// LEADERBOARD RENDERER
+// ============================================================
+const Leaderboard = (() => {
+  const list = $('#lbList');
+
+  function render() {
+    if (!list) return;
+    const save = getSave();
+    list.innerHTML = '';
+
+    if (!save.scores || save.scores.length === 0) {
+      list.innerHTML = `<div class="lb-empty">Пока нет результатов<br>Сыграй первую игру!</div>`;
+      return;
+    }
+
+    // Сортируем по счёту
+    const sorted = [...save.scores].sort((a, b) => b.score - a.score).slice(0, 50);
+
+    sorted.forEach((entry, i) => {
+      const rank = i + 1;
+      const row = document.createElement('div');
+      row.className = 'lb-row';
+      if (rank === 1) row.classList.add('top1');
+      else if (rank === 2) row.classList.add('top2');
+      else if (rank === 3) row.classList.add('top3');
+      row.style.animationDelay = (i * 30) + 'ms';
+
+      const mode = MODES[entry.mode] || { name: 'КЛАССИКА' };
+      const arena = ARENAS[entry.arena] || { name: 'СЕТКА' };
+      const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+      const rankText = medal || `#${rank}`;
+
+      row.innerHTML = `
+        <div class="lb-rank">${rankText}</div>
+        <div>
+          <div class="lb-name">${mode.name}</div>
+          <div class="lb-mode">${arena.name} · ${formatTime(entry.timeMs || 0)}</div>
+        </div>
+        <div class="lb-mode">${entry.won ? '★' : ''}</div>
+        <div class="lb-score">${formatNumber(entry.score)}</div>
+      `;
+
+      list.appendChild(row);
+    });
+  }
+
+  return { render };
+})();
+
+// ============================================================
+// PROFILE / MENU STATS
+// ============================================================
+const Profile = (() => {
+  function refresh() {
+    const save = getSave();
+
+    // Best
+    const bestEl = $('#menuBest');
+    if (bestEl) bestEl.textContent = formatNumber(save.best);
+
+    // Games
+    const gamesEl = $('#menuGames');
+    if (gamesEl) gamesEl.textContent = formatNumber(save.gamesPlayed);
+
+    // Kills
+    const killsEl = $('#menuKills');
+    if (killsEl) killsEl.textContent = formatNumber(save.totalKills);
+
+    // Orbs
+    const orbsEl = $('#menuOrbs');
+    if (orbsEl) orbsEl.textContent = formatNumber(save.totalOrbs);
+
+    // Level
+    const levelData = getLevelData(save.xp);
+    const badge = $('#levelBadge');
+    if (badge) badge.textContent = levelData.level;
+    const nameEl = $('#levelName');
+    if (nameEl) nameEl.textContent = levelData.name;
+    const xpEl = $('#levelXP');
+    if (xpEl) xpEl.textContent = `${save.xp} / ${levelData.nextXp} XP`;
+    const xpFill = $('#xpFill');
+    if (xpFill) xpFill.style.width = (levelData.progress * 100) + '%';
+  }
+
+  return { refresh };
+})();
+
+function getLevelData(xp) {
+  let level = 1;
+  let name = LEVELS[0].name;
+  let currentXp = 0;
+  let nextXp = LEVELS[1].xp;
+
+  for (let i = 0; i < LEVELS.length; i++) {
+    if (xp >= LEVELS[i].xp) {
+      level = i + 1;
+      name = LEVELS[i].name;
+      currentXp = LEVELS[i].xp;
+      nextXp = LEVELS[i + 1] ? LEVELS[i + 1].xp : LEVELS[i].xp;
+    }
+  }
+
+  const span = Math.max(1, nextXp - currentXp);
+  const progress = clamp((xp - currentXp) / span, 0, 1);
+
+  return { level, name, progress, currentXp, nextXp };
+}
+
+// ============================================================
+// HUD UPDATES
+// ============================================================
+function updateHUDScore(score) {
+  const el = $('#scoreDisplay');
+  if (!el) return;
+  el.textContent = formatNumber(score);
+  el.classList.add('bump');
+  clearTimeout(el._bumpTimer);
+  el._bumpTimer = setTimeout(() => el.classList.remove('bump'), 160);
+}
+
+function updateHUDBest(best) {
+  const el = $('#bestDisplay');
+  if (el) el.textContent = formatNumber(best);
+}
+
+function updateHUDLevel(level) {
+  const el = $('#levelTag');
+  if (el) el.textContent = 'УРОВЕНЬ ' + level;
+
+  // Speed meter
+  const speedFill = $('#speedFill');
+  if (speedFill) {
+    const pct = clamp(level * 10, 10, 100);
+    speedFill.style.width = pct + '%';
+  }
+}
+
+function updateHUDMode(modeName) {
+  const el = $('#modeTag');
+  if (el) el.textContent = modeName;
+}
+
+// ============================================================
+// SCREEN EFFECTS
+// ============================================================
+function flash(intensity = 0.5, duration = 200) {
+  const el = $('#flash');
+  if (!el) return;
+  el.style.transition = 'none';
+  el.style.opacity = intensity;
+  requestAnimationFrame(() => {
+    el.style.transition = `opacity ${duration}ms ease-out`;
+    el.style.opacity = 0;
+  });
+}
+
+// ============================================================
+// PAUSE MENU
+// ============================================================
+function showPauseMenu() {
+  const el = $('#pauseMenu');
+  if (el) el.classList.add('active');
+}
+
+function hidePauseMenu() {
+  const el = $('#pauseMenu');
+  if (el) el.classList.remove('active');
+}
+
+// ============================================================
+// GAME OVER SCREEN
+// ============================================================
+function showGameOver(data) {
+  const { score, best, isRecord, orbs, kills, xpGain, won, reason } = data;
+
+  // Title
+  const titleEl = $('#goTitle');
+  const statusEl = $('#goStatus');
+  const subEl = $('#goSub');
+
+  if (won) {
+    if (statusEl) statusEl.textContent = 'ПРОГРАММА ЗАВЕРШЕНА УСПЕШНО';
+    if (titleEl) titleEl.textContent = 'VICTORY';
+    if (titleEl) titleEl.style.color = 'var(--cyan)';
+    if (titleEl) titleEl.style.textShadow = '0 0 15px var(--cyan), 0 0 40px var(--cyan), 0 0 70px var(--cyan-glow)';
+    if (subEl) subEl.textContent = 'СИСТЕМА ENCOM · КОД 89.4';
+  } else {
+    if (statusEl) statusEl.textContent = 'ПРОГРАММА ЗАВЕРШЕНА';
+    if (titleEl) titleEl.textContent = 'DERESOLUTION';
+    if (titleEl) titleEl.style.color = '';
+    if (titleEl) titleEl.style.textShadow = '';
+    if (subEl) {
+      const reasons = {
+        wall: 'СТОЛКНОВЕНИЕ СО СТЕНОЙ',
+        self: 'СТОЛКНОВЕНИЕ С СОБСТВЕННЫМ СЛЕДОМ',
+        enemy: 'СТОЛКНОВЕНИЕ СО СЛЕДОМ ВРАГА',
+        'enemy-contact': 'ПРЯМОЕ СТОЛКНОВЕНИЕ С ВРАГОМ',
+        trap: 'ПОДРЫВ НА ЛОВУШКЕ',
+        boss: 'СТОЛКНОВЕНИЕ С БОССОМ',
+        'boss-contact': 'БОСС УНИЧТОЖИЛ ВАС',
+        projectile: 'ПОПАДАНИЕ СНАРЯДА',
+      };
+      subEl.textContent = reasons[reason] || 'СИСТЕМА ENCOM · ЛОГ 89.4';
+    }
+  }
+
+  // Stats
+  const setText = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = typeof val === 'number' ? formatNumber(val) : val;
+  };
+
+  setText('finalScore', score);
+  setText('finalBest', best);
+  setText('finalOrbs', orbs);
+  setText('finalKills', kills);
+
+  // Record box
+  const bestBox = $('#finalBestBox');
+  if (bestBox) bestBox.classList.toggle('new-record', isRecord);
+
+  // XP
+  setText('xpGained', '+' + xpGain + ' XP');
+  const goXpFill = $('#goXpFill');
+  if (goXpFill) {
+    goXpFill.style.width = '0%';
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        const save = getSave();
+        const lvl = getLevelData(save.xp);
+        goXpFill.style.width = (lvl.progress * 100) + '%';
+      }, 200);
+    });
+  }
+
+  // Show
+  const el = $('#gameover');
+  if (el) el.classList.add('active');
+
+  // Audio
+  if (won || isRecord) {
+    setTimeout(() => Audio.newRecord(), 300);
+  } else {
+    setTimeout(() => Audio.gameover(), 300);
+  }
+}
+
+// ============================================================
+// SETTINGS: SLIDER COMPONENT
+// ============================================================
+function setupSlider(sliderId, fillId, thumbId, valueId, labels, getValue, setValue) {
+  const slider = document.getElementById(sliderId);
+  const fill = document.getElementById(fillId);
+  const thumb = document.getElementById(thumbId);
+  const valueEl = document.getElementById(valueId);
+
+  if (!slider || !fill || !thumb || !valueEl) return;
+
+  function refresh() {
+    const v = getValue();
+    const max = labels.length - 1;
+    const pct = (v / max) * 100;
+    fill.style.width = pct + '%';
+    thumb.style.left = pct + '%';
+    valueEl.textContent = labels[v];
+  }
+
+  function setFromX(clientX) {
+    const rect = slider.getBoundingClientRect();
+    const pct = clamp((clientX - rect.left) / rect.width, 0, 1);
+    const idx = Math.round(pct * (labels.length - 1));
+    if (idx !== getValue()) {
+      setValue(idx);
+      Audio.uiClick();
+    }
+    refresh();
+  }
+
+  let dragging = false;
+
+  slider.addEventListener('mousedown', (e) => {
+    dragging = true;
+    setFromX(e.clientX);
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (dragging) setFromX(e.clientX);
+  });
+  window.addEventListener('mouseup', () => { dragging = false; });
+
+  slider.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    dragging = true;
+    setFromX(e.touches[0].clientX);
+  }, { passive: false });
+  slider.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (dragging) setFromX(e.touches[0].clientX);
+  }, { passive: false });
+  slider.addEventListener('touchend', () => { dragging = false; });
+
+  refresh();
+  return refresh;
+}
+
+// ============================================================
+// SETTINGS PANEL
+// ============================================================
+const SettingsPanel = (() => {
+  const soundToggle = $('#soundToggle');
+  const vibrateToggle = $('#vibrateToggle');
+  const particlesToggle = $('#particlesToggle');
+  const trailGlowToggle = $('#trailGlowToggle');
+
+  let refreshDiff = null;
+  let refreshSens = null;
+
+  function init() {
+    // Toggles
+    soundToggle?.addEventListener('click', () => {
+      const save = getSave();
+      save.sound = !save.sound;
+      soundToggle.classList.toggle('on', save.sound);
+      Audio.setEnabled(save.sound);
+      if (save.sound) Audio.ui();
+      persistSave();
+    });
+
+    vibrateToggle?.addEventListener('click', () => {
+      const save = getSave();
+      save.vibrate = !save.vibrate;
+      vibrateToggle.classList.toggle('on', save.vibrate);
+      if (save.vibrate) vibrate(20);
+      persistSave();
+    });
+
+    particlesToggle?.addEventListener('click', () => {
+      const save = getSave();
+      save.particles = !save.particles;
+      particlesToggle.classList.toggle('on', save.particles);
+      Audio.ui();
+      persistSave();
+    });
+
+    trailGlowToggle?.addEventListener('click', () => {
+      const save = getSave();
+      save.trailGlow = !save.trailGlow;
+      trailGlowToggle.classList.toggle('on', save.trailGlow);
+      Audio.ui();
+      persistSave();
+    });
+
+    // Sliders
+    refreshDiff = setupSlider(
+      'diffSlider', 'diffFill', 'diffThumb', 'diffValue',
+      ['ЛЕГКО', 'НОРМ', 'СЛОЖНО'],
+      () => getSave().difficulty,
+      (v) => { getSave().difficulty = v; persistSave(); }
+    );
+
+    refreshSens = setupSlider(
+      'sensSlider', 'sensFill', 'sensThumb', 'sensValue',
+      ['НИЗК', 'СРЕД', 'ВЫСОК'],
+      () => getSave().sensitivity,
+      (v) => { getSave().sensitivity = v; persistSave(); }
+    );
+
+    // Reset
+    const resetBtn = $('#resetBtn');
+    resetBtn?.addEventListener('click', () => {
+      if (confirm('Сбросить весь прогресс? Это удалит рекорды, уровень и статистику.')) {
+        T.resetSave();
+        Audio.uiError();
+        Toast.show('ПРОГРЕСС СБРОШЕН', 'red');
+        Profile.refresh();
+        ModeCards.render();
+        ArenaCards.render();
+        Leaderboard.render();
+        refreshAll();
+      }
+    });
+  }
+
+  function refreshAll() {
+    const save = getSave();
+    soundToggle?.classList.toggle('on', save.sound);
+    vibrateToggle?.classList.toggle('on', save.vibrate);
+    particlesToggle?.classList.toggle('on', save.particles);
+    trailGlowToggle?.classList.toggle('on', save.trailGlow);
+    refreshDiff?.();
+    refreshSens?.();
+  }
+
+  return { init, refreshAll };
+})();
+
+// ============================================================
+// WIRE UP BUTTONS
+// ============================================================
+function wireAllButtons() {
+  // Main menu
+  $('#playBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    // Быстрая игра — классика на сетке
+    Screens.hideAll();
+    setTimeout(() => {
+      Game.start('classic', 'grid');
+    }, 220);
+  });
+
+  $('#modesBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    Screens.show('modeSelect');
+    ModeCards.render();
+  });
+
+  $('#arenasBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    Screens.setPendingArenaMode('classic');
+    Screens.show('arenaSelect');
+    ArenaCards.render();
+  });
+
+  $('#leaderboardBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    Screens.show('leaderboard');
+    Leaderboard.render();
+  });
+
+  $('#howtoBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    Screens.show('howto');
+  });
+
+  $('#settingsBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    Screens.show('settings');
+    SettingsPanel.refreshAll();
+  });
+
+  // Back buttons
+  $$('[data-back]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      Audio.uiBack();
+      Screens.show('mainMenu');
+      Profile.refresh();
+    });
+  });
+
+  // Pause
+  $('#resumeBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    Game.resume();
+  });
+
+  $('#restartBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    hidePauseMenu();
+    Game.restart();
+  });
+
+  $('#settingsPauseBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    hidePauseMenu();
+    // Настройки поверх паузы
+    Screens.show('settings');
+    SettingsPanel.refreshAll();
+  });
+
+  $('#quitBtn')?.addEventListener('click', () => {
+    Audio.uiBack();
+    Game.quit();
+  });
+
+  // Game over
+  $('#retryBtn')?.addEventListener('click', () => {
+    Audio.ui();
+    const el = $('#gameover');
+    if (el) el.classList.remove('active');
+    setTimeout(() => {
+      const mode = Game.getMode();
+      const arena = Game.getArena();
+      Game.start(mode.id, arena.id);
+    }, 220);
+  });
+
+  $('#menuBtn')?.addEventListener('click', () => {
+    Audio.uiBack();
+    const el = $('#gameover');
+    if (el) el.classList.remove('active');
+    Game.quit();
+  });
+
+  // Prevent double-tap zoom
+  document.addEventListener('gesturestart', (e) => e.preventDefault());
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', (e) => {
+    const nowT = Date.now();
+    if (nowT - lastTouchEnd <= 300) e.preventDefault();
+    lastTouchEnd = nowT;
+  }, { passive: false });
+
+  document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  // iOS rubber-band prevent
+  document.body.addEventListener('touchmove', (e) => {
+    if (e.target === document.body || e.target === document.documentElement) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+}
+
+// ============================================================
+// LOADER
+// ============================================================
+function runLoader(callback) {
+  const loader = $('#loader');
+  const tipEl = $('#loaderTip');
+  if (!loader) {
+    callback();
+    return;
+  }
+
+  let tipIdx = 0;
+  const tipInterval = setInterval(() => {
+    tipIdx = (tipIdx + 1) % LOADING_TIPS.length;
+    if (tipEl) {
+      tipEl.style.opacity = 0;
+      setTimeout(() => {
+        tipEl.textContent = LOADING_TIPS[tipIdx];
+        tipEl.style.opacity = 1;
+      }, 200);
+    }
+  }, 450);
+
+  // Общая длительность загрузки ~ 2.4 сек
+  setTimeout(() => {
+    clearInterval(tipInterval);
+    loader.classList.add('fade-out');
+    setTimeout(() => {
+      loader.classList.add('hidden');
+      callback();
+    }, 900);
+  }, 2400);
+}
+
+// ============================================================
+// EXPORTS TO TRON
+// ============================================================
+T.updateHUDScore = updateHUDScore;
+T.updateHUDBest = updateHUDBest;
+T.updateHUDLevel = updateHUDLevel;
+T.updateHUDMode = updateHUDMode;
+T.showGameOver = showGameOver;
+T.showPauseMenu = showPauseMenu;
+T.hidePauseMenu = hidePauseMenu;
+T.showMainMenu = () => {
+  Screens.show('mainMenu');
+  Profile.refresh();
+};
+T.Toast = Toast;
+T.flash = flash;
+T.Screens = Screens;
+T.ModeCards = ModeCards;
+T.ArenaCards = ArenaCards;
+T.Leaderboard = Leaderboard;
+T.Profile = Profile;
+T.SettingsPanel = SettingsPanel;
+
+// ============================================================
+// BOOT SEQUENCE
+// ============================================================
+function boot() {
+  console.log('[TRON] Boot started...');
+
+  // Init settings UI first (sliders etc.)
+  SettingsPanel.init();
+
+  // Wire all buttons
+  wireAllButtons();
+
+  // Global keyboard shortcuts for menus
+  window.addEventListener('keydown', (e) => {
+    const k = e.key.toLowerCase();
+    const state = Game.getState();
+
+    // Menu navigation
+    if (state === 'idle') {
+      if (k === 'enter' && Screens.getCurrent() === 'mainMenu') {
+        e.preventDefault();
+        $('#playBtn')?.click();
+      }
+      if (k === 'escape') {
+        if (Screens.getCurrent() && Screens.getCurrent() !== 'mainMenu') {
+          Screens.show('mainMenu');
+        }
+      }
+    }
+  });
+
+  // Audio init on first interaction
+  const initAudioOnce = () => {
+    Audio.init();
+    Audio.resume();
+    document.removeEventListener('touchstart', initAudioOnce);
+    document.removeEventListener('mousedown', initAudioOnce);
+  };
+  document.addEventListener('touchstart', initAudioOnce, { passive: true });
+  document.addEventListener('mousedown', initAudioOnce);
+
+  // Start background animation
+  T.Background.start();
+
+  // Refresh UI
+  Profile.refresh();
+
+  // Run loader → show main menu
+  runLoader(() => {
+    Screens.show('mainMenu');
+    Profile.refresh();
+    console.log('[TRON] Game ready. Version:', T.VERSION);
+  });
+}
+
+// ============================================================
+// GO
+// ============================================================
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
+}
+
+console.log('[TRON] Part 3 loaded: UI ready.');
+
+})();
+</script>
+<!-- ============================================================
+     END OF PART 3 — GAME COMPLETE
+     ============================================================ -->
+</body>
+</html>
