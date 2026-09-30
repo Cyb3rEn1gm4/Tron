@@ -1419,3 +1419,557 @@ button:focus-visible, .toggle:focus-visible, .pad-btn:focus-visible,
 </div>
 
 <div id="toast"></div>
+<script>
+/* ============================================================
+   TRON: LEGACY — LIGHT CYCLES ARENA
+   Часть 2: CORE — константы, утилиты, сохранение, аудио, фон
+   ============================================================ */
+(() => {
+'use strict';
+
+// ============================================================
+// ГЛОБАЛЬНЫЙ ОБЪЕКТ
+// ============================================================
+const TRON = window.TRON = window.TRON || {};
+
+const VERSION = '2.0.1';
+const STORAGE_KEY = 'tron_arena_save_v2';
+
+TRON.VERSION = VERSION;
+TRON.STORAGE_KEY = STORAGE_KEY;
+
+// ============================================================
+// КОНСТАНТЫ
+// ============================================================
+const DIRS = {
+  up:    { x: 0, y: -1, name: 'up' },
+  down:  { x: 0, y: 1, name: 'down' },
+  left:  { x: -1, y: 0, name: 'left' },
+  right: { x: 1, y: 0, name: 'right' },
+};
+
+const MODES = {
+  classic: {
+    id: 'classic', name: 'КЛАССИКА', icon: '▶',
+    desc: 'Оригинальный режим. Растущий след, охотники, энергия.',
+    accent: 'var(--cyan)', accentGlow: 'rgba(0, 229, 255, 0.55)',
+    chips: [{ text: 'БАЗОВЫЙ', cls: 'easy' }],
+    unlockLevel: 0, enemyCount: 2, enemyAggro: 1.0,
+    orbCount: 7, speedMultiplier: 1.0, hasBoss: false,
+  },
+  survival: {
+    id: 'survival', name: 'ВЫЖИВАНИЕ', icon: '⏱',
+    desc: 'Волны врагов растут. Каждые 30 сек — новая волна.',
+    accent: 'var(--orange)', accentGlow: 'var(--orange-glow)',
+    chips: [{ text: 'ВОЛНЫ', cls: '' }, { text: 'СРЕДНЕ', cls: '' }],
+    unlockLevel: 0, enemyCount: 3, enemyAggro: 1.1,
+    orbCount: 5, speedMultiplier: 1.05, hasBoss: false, waveMode: true,
+  },
+  speedrun: {
+    id: 'speedrun', name: 'СПИДРАН', icon: '⏩',
+    desc: 'Максимальная скорость. Собери 50 орбов как можно быстрее.',
+    accent: 'var(--magenta)', accentGlow: 'var(--magenta-glow)',
+    chips: [{ text: 'ЭКСПЕРТ', cls: 'hard' }, { text: 'СКОРОСТЬ', cls: 'hard' }],
+    unlockLevel: 2, enemyCount: 4, enemyAggro: 1.3,
+    orbCount: 4, speedMultiplier: 1.4, hasBoss: false, goal: 50,
+  },
+  boss: {
+    id: 'boss', name: 'БОСС-БИТВА', icon: '☠',
+    desc: 'Гигантский байк-босс RINZLER. Уязвим только с тыла.',
+    accent: 'var(--red)', accentGlow: 'var(--red-glow)',
+    chips: [{ text: 'БОСС', cls: 'hard' }, { text: 'ЭПИК', cls: 'hard' }],
+    unlockLevel: 3, enemyCount: 0, enemyAggro: 0,
+    orbCount: 5, speedMultiplier: 1.0, hasBoss: true,
+  },
+  chaos: {
+    id: 'chaos', name: 'ХАОС', icon: '⚡',
+    desc: 'Случайные модификаторы каждые 10 сек. Непредсказуемо.',
+    accent: 'var(--purple)', accentGlow: 'rgba(157, 77, 255, 0.55)',
+    chips: [{ text: 'ХАОС', cls: '' }, { text: 'РАНДОМ', cls: '' }],
+    unlockLevel: 4, enemyCount: 3, enemyAggro: 1.15,
+    orbCount: 8, speedMultiplier: 1.1, hasBoss: false, chaosMode: true,
+  },
+  zen: {
+    id: 'zen', name: 'ДЗЕН', icon: '☯',
+    desc: 'Без врагов. Только ты, арена и энергия. Медитация.',
+    accent: 'var(--green)', accentGlow: 'rgba(0, 255, 136, 0.55)',
+    chips: [{ text: 'РЕЛАКС', cls: 'easy' }],
+    unlockLevel: 1, enemyCount: 0, enemyAggro: 0,
+    orbCount: 12, speedMultiplier: 0.9, hasBoss: false,
+  },
+};
+
+const ARENAS = {
+  grid: {
+    id: 'grid', name: 'СЕТКА', icon: '◈',
+    desc: 'Классическая арена. Чистое поле, никаких помех.',
+    accent: 'rgba(0, 229, 255, 0.55)', color: '#00e5ff',
+    features: [], unlockLevel: 0,
+  },
+  maze: {
+    id: 'maze', name: 'ЛАБИРИНТ', icon: '▤',
+    desc: 'Стены по всему полю. Пробирайся между блоками.',
+    accent: 'rgba(255, 140, 0, 0.55)', color: '#ff8c00',
+    features: ['walls'], unlockLevel: 0,
+  },
+  portals: {
+    id: 'portals', name: 'ПОРТАЛЫ', icon: '◎',
+    desc: 'Края экрана соединены. Выход справа — вход слева.',
+    accent: 'rgba(157, 77, 255, 0.55)', color: '#9d4dff',
+    features: ['portals'], unlockLevel: 1,
+  },
+  moving: {
+    id: 'moving', name: 'ПОТОК', icon: '≋',
+    desc: 'Движущиеся препятствия. Следи за потоком.',
+    accent: 'rgba(255, 43, 214, 0.55)', color: '#ff2bd6',
+    features: ['movingWalls'], unlockLevel: 2,
+  },
+  energy: {
+    id: 'energy', name: 'ЭНЕРГОСЕТЬ', icon: '✧',
+    desc: 'Орбы появляются чаще. Энергия повсюду.',
+    accent: 'rgba(0, 255, 136, 0.55)', color: '#00ff88',
+    features: ['energyBoost'], unlockLevel: 2,
+  },
+  traps: {
+    id: 'traps', name: 'ЛОВУШКИ', icon: '⚠',
+    desc: 'Мины и ловушки. Наступать нельзя — объезжай.',
+    accent: 'rgba(255, 43, 94, 0.55)', color: '#ff2b5e',
+    features: ['traps'], unlockLevel: 3,
+  },
+  colosseum: {
+    id: 'colosseum', name: 'КОЛИЗЕЙ', icon: '⚔',
+    desc: 'Замкнутая арена с колоннами. Меньше места — больше боя.',
+    accent: 'rgba(255, 213, 79, 0.55)', color: '#ffd54f',
+    features: ['pillars'], unlockLevel: 4,
+  },
+  void: {
+    id: 'void', name: 'ПУСТОТА', icon: '☯',
+    desc: 'Всё темно. Видно только ближайшие клетки. Хардкор.',
+    accent: 'rgba(255, 255, 255, 0.55)', color: '#ffffff',
+    features: ['fog'], unlockLevel: 5,
+  },
+};
+
+const ENEMY_TYPES = {
+  hunter:  { id: 'hunter',  name: 'Охотник',   color: '#ff2bd6', aggro: 1.3, speed: 1.0,  weight: 5 },
+  patrol:  { id: 'patrol',  name: 'Патрульный', color: '#ff8c00', aggro: 0.6, speed: 0.9,  weight: 3 },
+  flanker: { id: 'flanker', name: 'Фланкер',   color: '#9d4dff', aggro: 1.5, speed: 1.15, weight: 2 },
+  tank:    { id: 'tank',    name: 'Танк',       color: '#00ff88', aggro: 0.8, speed: 0.75, weight: 1 },
+};
+
+const LEVELS = [
+  { xp: 0,    name: 'НОВИЧОК' },
+  { xp: 100,  name: 'КУРСАНТ' },
+  { xp: 250,  name: 'ПИЛОТ' },
+  { xp: 500,  name: 'ГОНЩИК' },
+  { xp: 900,  name: 'ВЕТЕРАН' },
+  { xp: 1500, name: 'МАСТЕР' },
+  { xp: 2500, name: 'ЭЛИТА' },
+  { xp: 4000, name: 'ЛЕГЕНДА' },
+  { xp: 6000, name: 'ПРОГРАММА' },
+  { xp: 9000, name: 'БЕССМЕРТНЫЙ' },
+];
+
+TRON.DIRS = DIRS;
+TRON.MODES = MODES;
+TRON.ARENAS = ARENAS;
+TRON.ENEMY_TYPES = ENEMY_TYPES;
+TRON.LEVELS = LEVELS;
+
+// ============================================================
+// УТИЛИТЫ
+// ============================================================
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => root.querySelectorAll(sel);
+
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const rand = (a, b) => a + Math.random() * (b - a);
+const randInt = (a, b) => Math.floor(rand(a, b + 1));
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const distM = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+const now = () => performance.now();
+
+function formatNumber(n) {
+  return Math.floor(n).toLocaleString('ru-RU');
+}
+
+function formatTime(ms) {
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  const ss = (s % 60).toString().padStart(2, '0');
+  return `${m}:${ss}`;
+}
+
+function vibrate(ms) {
+  if (!save.vibrate) return;
+  if (navigator.vibrate) {
+    try { navigator.vibrate(ms); } catch (e) {}
+  }
+}
+
+TRON.$ = $;
+TRON.$$ = $$;
+TRON.clamp = clamp;
+TRON.lerp = lerp;
+TRON.rand = rand;
+TRON.randInt = randInt;
+TRON.pick = pick;
+TRON.dist = dist;
+TRON.distM = distM;
+TRON.now = now;
+TRON.formatNumber = formatNumber;
+TRON.formatTime = formatTime;
+TRON.vibrate = vibrate;
+
+// ============================================================
+// SAVE / STORAGE
+// ============================================================
+const defaultSave = {
+  version: VERSION,
+  best: 0,
+  gamesPlayed: 0,
+  totalOrbs: 0,
+  totalKills: 0,
+  totalPlaytimeMs: 0,
+  highestLevel: 1,
+  xp: 0,
+  sound: true,
+  vibrate: true,
+  particles: true,
+  trailGlow: true,
+  difficulty: 1,
+  sensitivity: 1,
+  unlockedModes: ['classic', 'survival'],
+  unlockedArenas: ['grid', 'maze'],
+  scores: [],
+  bestByMode: {},
+};
+
+let save = loadSave();
+
+function loadSave() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { ...defaultSave };
+    const parsed = JSON.parse(raw);
+    return { ...defaultSave, ...parsed };
+  } catch (e) {
+    return { ...defaultSave };
+  }
+}
+
+function persistSave() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
+  } catch (e) {}
+}
+
+function resetSave() {
+  save = { ...defaultSave };
+  persistSave();
+}
+
+TRON.getSave = () => save;
+TRON.persistSave = persistSave;
+TRON.resetSave = resetSave;
+
+// ============================================================
+// AUDIO ENGINE
+// ============================================================
+const Audio = (() => {
+  let ctx = null;
+  let masterGain = null;
+  let enabled = save.sound;
+
+  function init() {
+    if (ctx) return;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      ctx = new AC();
+      masterGain = ctx.createGain();
+      masterGain.gain.value = 0.16;
+      masterGain.connect(ctx.destination);
+    } catch (e) { ctx = null; }
+  }
+
+  function resume() {
+    if (ctx && ctx.state === 'suspended') {
+      try { ctx.resume(); } catch (e) {}
+    }
+  }
+
+  function tone(freq, dur, type = 'sine', vol = 0.3, slideTo = null, delay = 0) {
+    if (!enabled || !ctx) return;
+    resume();
+    const t0 = ctx.currentTime + delay;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    if (slideTo !== null) {
+      osc.frequency.exponentialRampToValueAtTime(Math.max(1, slideTo), t0 + dur);
+    }
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(vol, t0 + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain);
+    gain.connect(masterGain);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+  }
+
+  function noise(dur = 0.15, vol = 0.2, filterFreq = 1200, delay = 0) {
+    if (!enabled || !ctx) return;
+    resume();
+    const t0 = ctx.currentTime + delay;
+    const bufSize = Math.floor(ctx.sampleRate * dur);
+    const buffer = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufSize);
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = filterFreq;
+    const gain = ctx.createGain();
+    gain.gain.value = vol;
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(masterGain);
+    src.start(t0);
+  }
+
+  return {
+    init, resume,
+    setEnabled(v) { enabled = v; if (v) init(); },
+    isEnabled: () => enabled,
+
+    ui()      { tone(880, 0.05, 'sine', 0.12); },
+    uiBack()  { tone(440, 0.06, 'sine', 0.10); },
+    uiError() { tone(180, 0.15, 'sawtooth', 0.15, 120); },
+    uiClick() { tone(1100, 0.04, 'square', 0.08); },
+
+    orb() {
+      tone(1200, 0.08, 'sine', 0.22, 1800);
+      tone(1800, 0.06, 'sine', 0.12, 2400, 0.03);
+    },
+    combo(n) {
+      const base = 1400 + n * 80;
+      tone(base, 0.06, 'triangle', 0.15, base * 1.4);
+    },
+    crash() {
+      noise(0.4, 0.35, 700);
+      tone(140, 0.4, 'sawtooth', 0.3, 40);
+      tone(80, 0.5, 'sine', 0.2, 30, 0.05);
+    },
+    enemyKill() {
+      noise(0.22, 0.25, 1500);
+      tone(300, 0.16, 'square', 0.2, 100);
+      tone(500, 0.1, 'sine', 0.15, 250, 0.05);
+    },
+    countdown(last = false) {
+      if (last) {
+        tone(1200, 0.28, 'sine', 0.28, 1800);
+        tone(1800, 0.2, 'triangle', 0.15, 2400, 0.05);
+      } else {
+        tone(600, 0.12, 'sine', 0.22);
+      }
+    },
+    start() {
+      tone(220, 0.32, 'sawtooth', 0.18, 880);
+      tone(880, 0.4, 'sine', 0.18, 1400, 0.2);
+    },
+    gameover() {
+      tone(400, 0.5, 'sawtooth', 0.22, 80);
+      tone(200, 0.6, 'sine', 0.18, 60, 0.25);
+    },
+    newRecord() {
+      const notes = [660, 880, 1100, 1320, 1760];
+      notes.forEach((n, i) => tone(n, 0.15, 'sine', 0.22, n * 1.05, i * 0.08));
+    },
+    levelUp() {
+      const notes = [440, 660, 880, 1320];
+      notes.forEach((n, i) => tone(n, 0.12, 'triangle', 0.2, n * 1.1, i * 0.06));
+    },
+    ability() {
+      tone(700, 0.08, 'square', 0.18, 1400);
+      tone(1400, 0.12, 'sine', 0.14, 2000, 0.04);
+    },
+    abilityReady() {
+      tone(1500, 0.08, 'sine', 0.12, 1800);
+    },
+    pause()   { tone(600, 0.1, 'sine', 0.15, 400); },
+    unpause() { tone(400, 0.1, 'sine', 0.15, 700); },
+  };
+})();
+
+TRON.Audio = Audio;
+
+// ============================================================
+// BACKGROUND (анимированная сетка позади всего)
+// ============================================================
+const Background = (() => {
+  const canvas = $('#bgCanvas');
+  if (!canvas) return { start() {}, stop() {}, resize() {} };
+  const ctx = canvas.getContext('2d');
+  let W = 0, H = 0, DPR = 1;
+  let rafId = null;
+  let running = true;
+  let t0 = now();
+
+  const dots = [];
+  for (let i = 0; i < 50; i++) {
+    dots.push({
+      x: Math.random(), y: Math.random(),
+      vx: rand(-0.0003, 0.0003), vy: rand(-0.0003, 0.0003),
+      size: rand(0.5, 1.8),
+      hue: Math.random() < 0.85 ? 190 : (Math.random() < 0.5 ? 300 : 30),
+      phase: Math.random() * Math.PI * 2,
+    });
+  }
+
+  const streaks = [];
+  for (let i = 0; i < 6; i++) {
+    streaks.push({
+      x: Math.random(), y: Math.random(),
+      vx: rand(0.001, 0.003) * (Math.random() < 0.5 ? -1 : 1),
+      vy: rand(0.0005, 0.0015),
+      len: rand(0.05, 0.15),
+      hue: Math.random() < 0.7 ? 190 : 300,
+      alpha: rand(0.15, 0.35),
+      phase: Math.random() * Math.PI * 2,
+    });
+  }
+
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W * DPR;
+    canvas.height = H * DPR;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  function draw(t) {
+    const time = (t - t0) / 1000;
+
+    const grad = ctx.createRadialGradient(W * 0.5, H * 0.5, 0, W * 0.5, H * 0.5, Math.max(W, H) * 0.75);
+    grad.addColorStop(0, '#001428');
+    grad.addColorStop(0.55, '#000a18');
+    grad.addColorStop(1, '#000204');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    const gridSize = 60;
+    const scrollY = (time * 30) % gridSize;
+    const scrollX = (time * 18) % gridSize;
+
+    ctx.strokeStyle = 'rgba(0, 180, 220, 0.09)';
+    ctx.lineWidth = 1;
+    for (let y = -gridSize + scrollY; y < H + gridSize; y += gridSize) {
+      const t2 = y / H;
+      ctx.globalAlpha = 0.04 + 0.10 * Math.sin(t2 * Math.PI);
+      ctx.beginPath();
+      ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+    for (let x = -gridSize + scrollX; x < W + gridSize; x += gridSize) {
+      const t2 = x / W;
+      ctx.globalAlpha = 0.04 + 0.10 * Math.sin(t2 * Math.PI);
+      ctx.beginPath();
+      ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    const pulse = 0.5 + 0.5 * Math.sin(time * 1.2);
+    const horizonY = H * 0.55;
+    const hGrad = ctx.createLinearGradient(0, horizonY - 60, 0, horizonY + 60);
+    hGrad.addColorStop(0, 'rgba(0, 229, 255, 0)');
+    hGrad.addColorStop(0.5, `rgba(0, 229, 255, ${0.06 * pulse})`);
+    hGrad.addColorStop(1, 'rgba(0, 229, 255, 0)');
+    ctx.fillStyle = hGrad;
+    ctx.fillRect(0, horizonY - 60, W, 120);
+
+    for (const s of streaks) {
+      s.x += s.vx; s.y += s.vy;
+      if (s.x < -0.2) s.x = 1.2;
+      if (s.x > 1.2) s.x = -0.2;
+      if (s.y < -0.2) s.y = 1.2;
+      if (s.y > 1.2) s.y = -0.2;
+
+      const px = s.x * W;
+      const py = s.y * H;
+      const pl = s.len * Math.max(W, H);
+      const twinkle = 0.6 + 0.4 * Math.sin(time * 2 + s.phase);
+
+      ctx.save();
+      ctx.globalAlpha = s.alpha * twinkle;
+      ctx.strokeStyle = `hsl(${s.hue}, 100%, 60%)`;
+      ctx.lineWidth = 1.5;
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = `hsl(${s.hue}, 100%, 60%)`;
+      ctx.beginPath();
+      const nrm = Math.hypot(s.vx, s.vy);
+      ctx.moveTo(px, py);
+      ctx.lineTo(px - s.vx / nrm * pl, py - s.vy / nrm * pl);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    for (const d of dots) {
+      d.x += d.vx; d.y += d.vy;
+      if (d.x < 0) d.x = 1;
+      if (d.x > 1) d.x = 0;
+      if (d.y < 0) d.y = 1;
+      if (d.y > 1) d.y = 0;
+
+      const dx = d.x * W;
+      const dy = d.y * H;
+      const twinkle = 0.4 + 0.6 * Math.sin(time * 2 + d.phase);
+
+      ctx.fillStyle = `hsla(${d.hue}, 100%, 60%, ${0.5 * twinkle})`;
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = `hsl(${d.hue}, 100%, 60%)`;
+      ctx.beginPath();
+      ctx.arc(dx, dy, d.size * twinkle + 0.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+  }
+
+  function loop(t) {
+    if (!running) return;
+    draw(t);
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function start() {
+    resize();
+    running = true;
+    if (rafId) cancelAnimationFrame(rafId);
+    t0 = now();
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function stop() {
+    running = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+
+  window.addEventListener('resize', () => resize());
+  window.addEventListener('orientationchange', () => setTimeout(resize, 250));
+
+  return { start, stop, resize };
+})();
+
+TRON.Background = Background;
+
+console.log('[TRON] Part 2 loaded: CORE ready.');
+
+})();
+              </script>
